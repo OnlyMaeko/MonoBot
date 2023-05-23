@@ -3,11 +3,9 @@ package defaulta;
 public class Railroads {
 
 	//Attributes declaration
-	private String Road_Name;
-	private double one_rent;
-	private double two_rent;
-	private double three_rent;
-	private double four_rent;
+	private String Util_Name;
+	private double rent_4;
+	private double rent_10;
 	private double Value_When_Mortgaged;
 	private double Price_to_Buy;
 	private double Board_Position;

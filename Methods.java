@@ -6,11 +6,9 @@ public class Methods {
 		// TODO Auto-generated method stub
 
 		public void rent(Properties property, Player player_name)
-
-// 	This is piss poor coding lmao, change to call the number of houses and calculaiion the best based off of 1 search, i actually don't know if thats faster but I think it is
-
+		
 		{
-		if(Number_Houses == 0)
+		if(Number_Houses == 0) 
 		{
 			current_rent = Rent_Base;
 		}
@@ -38,13 +36,13 @@ public class Methods {
 		{
 		current_rent = Rent_Base * 2;
 		}
-
+		
 		this.actual_rent = current_rent;
-
-
-
-
-
+		
+		
+		
+		
+		
 	}
 
 }

@@ -1,3 +1,1 @@
 # MonoBot
-
-Hey nerds, please feel free to use this project and play away. Please don't steal it and pass it off as your own (give credit to the devs... us). This is a pretty dookie readme and there is no explanation of this project so fat. There's certainly more to come...

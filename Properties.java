@@ -24,12 +24,12 @@ public class Properties {
 	private double Price_Sell_House;
 	private double Price_Sell_Hotel;
 
-
-	public Properties(String Name, double Rent_Base, double Rent_1, double Rent_2, double Rent_3, double Rent_4, double Rent_Hotel, double Mortgage_Value,
+	
+	public Properties(String Name, double Rent_Base, double Rent_1, double Rent_2, double Rent_3, double Rent_4, double Rent_Hotel, double Mortgage_Value, 
 	double Cost_House, double Cost_Hotel, String Color_Set, double Buy_Price, double Postion_on_Board, int Number_Houses, boolean Hotel, String Owner,
 	boolean Fully_Owned, boolean Mortgaged, double House_Sell_Price, double Hotel_Sell_Price) {
-
-
+		
+		
 		this.Prop_Name = Name;
 		this.base_rent = Rent_Base;
 		this.rent_one = Rent_1;
@@ -50,27 +50,11 @@ public class Properties {
 		this.Is_Mortgaged = Mortgaged;
 		this.Price_Sell_House = House_Sell_Price;
 		this.Price_Sell_Hotel = Hotel_Sell_Price;
-
-
-
-
-
+		
+		
+		
+		
+		
 	}
 
-
-// 	We need getters and setters lol bc that would just make things easier
-
-
-
-		public void setPropName(String PropName)
-			{
-				this.Prop_Name = PropName;
-					}
-		public void setBaseRent(double RentBase)
-			{
-				this.base_rent = RentBase;
-					}
-
-
-
-				}
+}
