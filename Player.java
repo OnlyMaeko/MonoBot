@@ -4,12 +4,12 @@ import java.util.ArrayList;
 
 public class Player {
 
-	private double location;
+	private int location;
 	private String playerName;
 	private ArrayList<Properties> ownedProperties;
-	private double moneyAmount;
+	private int moneyAmount;
 	
-	public Player(String playerName, double locationOnBoard, ArrayList<Properties> ownedProperties, double moneyAmount) {
+	public Player(String playerName, int locationOnBoard, ArrayList<Properties> ownedProperties, int moneyAmount) {
 		this.playerName = playerName;
 		this.location = locationOnBoard;
 		this.ownedProperties = ownedProperties;
@@ -17,7 +17,7 @@ public class Player {
 	}
 
 	// Getters
-	public double getLocation() {
+	public int getLocation() {
 		return location;
 	}
 
@@ -29,12 +29,12 @@ public class Player {
 		return ownedProperties;
 	}
 
-	public double getMoneyAmount() {
+	public int getMoneyAmount() {
 		return moneyAmount;
 	}
 
 	// Setters
-	public void setLocation(double newLocation) {
+	public void setLocation(int newLocation) {
 		this.location = newLocation;
 	}
 
@@ -46,7 +46,7 @@ public class Player {
 		this.ownedProperties = ownedProperties;
 	}
 
-	public void setMoneyAmount(double moneyAmount) {
+	public void setMoneyAmount(int moneyAmount) {
 		this.moneyAmount = moneyAmount;
 	}
 }

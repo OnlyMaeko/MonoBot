@@ -47,7 +47,210 @@ public class Properties {
 		this.isMortgaged = isMortgaged;
 		this.houseSellPrice = houseSellPrice;
 		this.hotelSellPrice = hotelSellPrice;
-		
+
+	}
+
+	// Getters	
+	public String getPropName() 
+	{
+	return propName;
+	}
+	
+	public double getBaseRent() 
+	{
+	return baseRent;
+	}
+	
+	public double  getRentOne() 
+	{
+	return rentOne;	
+	}
+	
+	public double getRentTwo() 
+	{
+	return rentTwo;	
+	}
+
+	public double getRentThree() 
+	{
+	return rentThree;	
+	}
+	
+	public double getRentFour() 
+	{
+	return rentFour;	
+	}
+	
+	public double getRentHotel() 
+	{
+	return rentHotel;	
+	}
+	
+	public double getMortgageValue() 
+	{
+	return mortgageValue;	
+	}
+	
+	public double getHouseCost() 
+	{
+	return houseCost;	
+	}
+	
+	public double getHotelCost() 
+	{
+	return hotelCost;	
+	}
+	
+	public String getSetColor() 
+	{
+	return setColor;	
+	}
+	
+	public double getPrice() 
+	{
+	return price;	
+	}
+	
+	public double getBoardPosition() 
+	{
+	return boardPosition;	
+	}
+	
+	public int getNumberOfHouses() 
+	{
+	return numberOfHouses;	
+	}
+	
+	public boolean getIsHotel() 
+	{
+	return isHotel;	
+	}
+	
+	public boolean getIsFullyOwned() 
+	{
+	return isFullyOwned;	
+	}
+
+	public String getOwner() 
+	{
+	return owner;	
+	}
+	
+	public boolean getIsMortgaged() 
+	{
+	return isMortgaged;	
+	}
+	
+	public double getHouseSellPrice() 
+	{
+	return houseSellPrice;	
+	}
+	
+	public double getHotelSellPrice() 
+	{
+	return hotelSellPrice;	
+	}
+	
+	//	Setters
+
+	public void setPropName(String propertyName)
+	{
+		this.propName = propertyName;
+	}
+	
+	public void setBaseRent(double OriginalRent)
+	{
+		this.baseRent = OriginalRent;
+	}
+	
+	public void setRentOne(double rent1)
+	{
+		this.rentOne = rent1;
+	}
+	
+	public void setRentTwo(double rent2)
+	{
+		this.rentTwo = rent2;
+	}
+	
+	public void setRentThree(double rent3)
+	{
+		this.rentThree = rent3;
+	}
+	
+	public void setRentFour(double rent4)
+	{
+		this.rentFour = rent4;
+	}
+	
+	public void setRentHotel(double rentH)
+	{
+		this.rentHotel = rentH;
+	}
+	
+	public void setMortgageValue(double mortgageV)
+	{
+		this.mortgageValue = mortgageV;
+	}
+	
+	public void setHouseCost(double housePrice)
+	{
+		this.houseCost = housePrice;
+	}
+	
+	public void setHotelCost(double hotelPrice)
+	{
+		this.hotelCost = hotelPrice;
+	}
+	
+	public void setSetColor(String colorOfSet)
+	{
+		this.setColor = colorOfSet;
+	}
+	
+	public void setPrice(double cost)
+	{
+		this.price = cost;
+	}
+	
+	public void setBoardPosition(double boardPos)
+	{
+		this.boardPosition = boardPos;
+	}
+	
+	public void setNumberOfHouses(double numberHouses)
+	{
+		this.numberOfHouses = numberHouses;
+	}
+	
+	public void setIsHotel(boolean ifHotel)
+	{
+		this.isHotel = ifHotel;
+	}
+	
+	public void setOwner(String player)
+	{
+		this.owner = player;
+	}
+	
+	public void setIsFullyOwned(boolean ifFullyOwned)
+	{
+		this.isFullyOwned = ifFullyOwned;
+	}
+	
+	public void setIsMortgaged(boolean ifMortgaged)
+	{
+		this.isMortgaged = ifMortgaged;
+	}
+	
+	public void setHouseSellPrice(double houseSellCost)
+	{
+		this.houseSellPrice = houseSellCost;
+	}
+	
+	public void setHotelSellPrice(double hotelSellCost)
+	{
+		this.hotelSellPrice = hotelSellCost;
 	}
 
 }
