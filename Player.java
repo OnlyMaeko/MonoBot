@@ -1,62 +1,52 @@
 package defaulta;
 
-import java.util.ArrayList; // import the ArrayList class
-
+import java.util.ArrayList;
 
 public class Player {
 
 	private double location;
+	private String playerName;
+	private ArrayList<Properties> ownedProperties;
+	private double moneyAmount;
 	
-	public Player(String player_name, double location_on_board, ArrayList<String> owned_properties, double money_amount) {
-		// TODO Auto-generated constructor stub
-	
-	
-	this.location = location_on_board;
-	
-	
-//	 Properties array match it with the board number so you can match it with the property number
-	
-	
+	public Player(String playerName, double locationOnBoard, ArrayList<Properties> ownedProperties, double moneyAmount) {
+		this.playerName = playerName;
+		this.location = locationOnBoard;
+		this.ownedProperties = ownedProperties;
+		this.moneyAmount = moneyAmount;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-//	Getters
 
-	
-	
+	// Getters
 	public double getLocation() {
 		return location;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-//	Setters
-	
-	
+
+	public String getPlayerName() {
+		return playerName;
+	}
+
+	public ArrayList<Properties> getOwnedProperties() {
+		return ownedProperties;
+	}
+
+	public double getMoneyAmount() {
+		return moneyAmount;
+	}
+
+	// Setters
 	public void setLocation(double newLocation) {
 		this.location = newLocation;
 	}
-	
-	
-	
-	
-	
-	
+
+	public void setPlayerName(String playerName) {
+		this.playerName = playerName;
+	}
+
+	public void setOwnedProperties(ArrayList<Properties> ownedProperties) {
+		this.ownedProperties = ownedProperties;
+	}
+
+	public void setMoneyAmount(double moneyAmount) {
+		this.moneyAmount = moneyAmount;
+	}
 }
