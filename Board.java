@@ -1,95 +1,134 @@
 package defaulta;
 
+import java.util.ArrayList;
+
 public class Board {
 
+	private ArrayList<Properties> board;
 
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+	public Board() {
 
-		//  GO
+		board = new ArrayList<>();
 
-		Properties Mediterranean_Avenue = new Properties("Mediterranean Avenue", 2,10,30,90,160,250, 30, 50, 50, "Brown", 60, 1, 0, false, null, false, false,25,25);
+		// GO
+		board.add(new Properties("GO", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, false, null, false, false, 0, 0));
 
-//		COMMUNITY CHEST
+		// Mediterranean Avenue
+		board.add(new Properties("Mediterranean Avenue", 2, 10, 30, 90, 160, 250, 30, 50, 50, "Brown", 60, 1, 0, false, null, false, false, 25, 25));
 
-		Properties Baltic_Avenue = new Properties("Baltic Avenue", 4,20,60,180,320,450, 30, 50, 50, "Brown", 60, 3, 0, false, null, false, false,25,25);
+		// Community Chest
+		board.add(new Properties("Community Chest", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 2, 0, false, null, false, false, 0, 0));
 
-//		INCOME TAX
+		// Baltic Avenue
+		board.add(new Properties("Baltic Avenue", 4, 20, 60, 180, 320, 450, 30, 50, 50, "Brown", 60, 3, 0, false, null, false, false, 25, 25));
 
-//		READING RAILROAD
+		// Income Tax
+		board.add(new Properties("Income Tax", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 4, 0, false, null, false, false, 0, 0));
 
-		Properties Oriental_Avenue = new Properties("Oriental Avenue", 6,30,90,270,400,550, 50, 50, 50, "Light Blue", 100, 6, 0, false, null, false, false,25,25);
+		// Reading Railroad
+		board.add(new Properties("Reading Railroad", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 5, 0, false, null, false, false, 0, 0));
 
-//		CHANCE
+		// Oriental Avenue
+		board.add(new Properties("Oriental Avenue", 6, 30, 90, 270, 400, 550, 50, 50, 50, "Light Blue", 100, 6, 0, false, null, false, false, 25, 25));
 
-		Properties Vermont_Avenue = new Properties("Vermont Avenue", 6,30,90,270,400,550, 50, 50, 50, "Light Blue", 100, 8, 0, false, null, false, false,25,25);
+		// Chance
+		board.add(new Properties("Chance", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 7, 0, false, null, false, false, 0, 0));
 
-		Properties Connecticut_Avenue = new Properties("Connecticut Avenue", 8,40,100,300,450,600, 60, 50, 50, "Light Blue", 120, 9, 0, false, null, false, false,25,25);
+		// Vermont Avenue
+		board.add(new Properties("Vermont Avenue", 6, 30, 90, 270, 400, 550, 50, 50, 50, "Light Blue", 100, 8, 0, false, null, false, false, 25, 25));
 
-//		JAIL - JUST VISITING
+		// Connecticut Avenue
+		board.add(new Properties("Connecticut Avenue", 8, 40, 100, 300, 450, 600, 60, 50, 50, "Light Blue", 120, 9, 0, false, null, false, false, 25, 25));
 
-		Properties St_Charles_Place = new Properties("St. Charles Place", 10,50,150,450,625,750, 70, 100, 100, "Pink", 140, 11, 0, false, null, false, false,50,50);
+		// Jail - Just Visiting
+		board.add(new Properties("Jail - Just Visiting", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 10, 0, false, null, false, false, 0, 0));
 
-//	 Electric Company
+		// St. Charles Place
+		board.add(new Properties("St. Charles Place", 10, 50, 150, 450, 625, 750, 70, 100, 100, "Pink", 140, 11, 0, false, null, false, false, 50, 50));
 
-		Properties States_Avenue = new Properties("States Avenue", 10,50,150,450,625,750, 70, 100, 100, "Pink", 140, 13, 0, false, null, false, false,50,50);
+		// Electric Company
+		board.add(new Properties("Electric Company", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 12, 0, false, null, false, false, 0, 0));
 
-		Properties Virginia_Avenue = new Properties("Virginia Avenue", 12,60,180,500,700,900, 80, 100, 100, "Pink", 160, 14, 0, false, null, false, false,50,50);
+		// States Avenue
+		board.add(new Properties("States Avenue", 10, 50, 150, 450, 625, 750, 70, 100, 100, "Pink", 140, 13, 0, false, null, false, false, 50, 50));
 
-// Pennsylvania RAILROAD
+		// Virginia Avenue
+		board.add(new Properties("Virginia Avenue", 12, 60, 180, 500, 700, 900, 80, 100, 100, "Pink", 160, 14, 0, false, null, false, false, 50, 50));
 
-		Properties St_James_Place = new Properties("St. James Place", 14,70,200,550,750,950, 90, 100, 100, "Orange", 180, 16, 0, false, null, false, false,50,50);
+		// Pennsylvania Railroad
+		board.add(new Properties("Pennsylvania Railroad", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 15, 0, false, null, false, false, 0, 0));
 
-// 	Community CHEST
+		// St. James Place
+		board.add(new Properties("St. James Place", 14, 70, 200, 550, 750, 950, 90, 100, 100, "Orange", 180, 16, 0, false, null, false, false, 50, 50));
 
-		Properties Tennessee_Avenue = new Properties("Tennessee Avenue", 14,70,200,550,750,950, 90, 100, 100, "Orange", 180, 18, 0, false, null, false, false,50,50);
+		// Community Chest
+		board.add(new Properties("Community Chest", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 17, 0, false, null, false, false, 0, 0));
 
-		Properties New_York_Avenue = new Properties("New York Avenue", 16,80,220,600,800,1000, 100, 100, 100, "Orange", 200, 19, 0, false, null, false, false,50,50);
+		// Tennessee Avenue
+		board.add(new Properties("Tennessee Avenue", 14, 70, 200, 550, 750, 950, 90, 100, 100, "Orange", 180, 18, 0, false, null, false, false, 50, 50));
 
-// 	Free Parking
+		// New York Avenue
+		board.add(new Properties("New York Avenue", 16, 80, 220, 600, 800, 1000, 100, 100, 100, "Orange", 200, 19, 0, false, null, false, false, 50, 50));
 
-		Properties Kentucky_Avenue = new Properties("Kentucky Avenue", 18,90,250,700,875,1050, 110, 150, 150, "Red", 220, 21, 0, false, null, false, false,75,75);
+		// Free Parking
+		board.add(new Properties("Free Parking", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 20, 0, false, null, false, false, 0, 0));
 
-// 	Chance
+		// Kentucky Avenue
+		board.add(new Properties("Kentucky Avenue", 18, 90, 250, 700, 875, 1050, 110, 150, 150, "Red", 220, 21, 0, false, null, false, false, 75, 75));
 
-		Properties Indiana_Avenue = new Properties("Indiana Avenue", 18,90,250,700,875,1050, 110, 150, 150, "Red", 220, 23, 0, false, null, false, false,75,75);
+		// Chance
+		board.add(new Properties("Chance", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 22, 0, false, null, false, false, 0, 0));
 
-		Properties Illinois_Avenue = new Properties("Illinois Avenue", 20,100,300,750,925,1100, 120, 150, 150, "Red", 240, 24, 0, false, null, false, false,75,75);
+		// Indiana Avenue
+		board.add(new Properties("Indiana Avenue", 18, 90, 250, 700, 875, 1050, 110, 150, 150, "Red", 220, 23, 0, false, null, false, false, 75, 75));
 
-// 	B & O RAILROAD
+		// Illinois Avenue
+		board.add(new Properties("Illinois Avenue", 20, 100, 300, 750, 925, 1100, 120, 150, 150, "Red", 240, 24, 0, false, null, false, false, 75, 75));
 
-		Properties Atlantic_Avenue = new Properties("Atlantic Avenue", 22,110,330,800,975,1150, 130, 150, 150, "Yellow", 260, 26, 0, false, null, false, false,75,75);
+		// B & O Railroad
+		board.add(new Properties("B & O Railroad", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 25, 0, false, null, false, false, 0, 0));
 
-		Properties Ventnor_Avenue = new Properties("Ventnor Avenue", 22,110,330,800,975,1150, 130, 150, 150, "Yellow", 260, 27, 0, false, null, false, false,75,75);
+		// Atlantic Avenue
+		board.add(new Properties("Atlantic Avenue", 22, 110, 330, 800, 975, 1150, 130, 150, 150, "Yellow", 260, 26, 0, false, null, false, false, 75, 75));
 
-// 	Water Works
+		// Ventnor Avenue
+		board.add(new Properties("Ventnor Avenue", 22, 110, 330, 800, 975, 1150, 130, 150, 150, "Yellow", 260, 27, 0, false, null, false, false, 75, 75));
 
-		Properties Marvin_Gardens = new Properties("Marvin Gardens", 24,120,360,850,1025,1200, 140, 150, 150, "Yellow", 280, 29, 0, false, null, false, false,75,75);
+		// Water Works
+		board.add(new Properties("Water Works", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 28, 0, false, null, false, false, 0, 0));
 
-//	GO TO JAIL
+		// Marvin Gardens
+		board.add(new Properties("Marvin Gardens", 24, 120, 360, 850, 1025, 1200, 140, 150, 150, "Yellow", 280, 29, 0, false, null, false, false, 75, 75));
 
-		Properties Pacific_Avenue = new Properties("Pacific Avenue", 26,130,390,900,1100,1275, 150, 200, 200, "Green", 300, 31, 0, false, null, false, false,100,100);
+		// Go to Jail
+		board.add(new Properties("Go to Jail", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 30, 0, false, null, false, false, 0, 0));
 
-		Properties North_Carolina_Avenue = new Properties("North Carolina Avenue", 26,130,390,900,1100,1275, 150, 200, 200, "Green", 300, 32, 0, false, null, false, false,100,100);
+		// Pacific Avenue
+		board.add(new Properties("Pacific Avenue", 26, 130, 390, 900, 1100, 1275, 150, 200, 200, "Green", 300, 31, 0, false, null, false, false, 100, 100));
 
-// 	Community CHest
+		// North Carolina Avenue
+		board.add(new Properties("North Carolina Avenue", 26, 130, 390, 900, 1100, 1275, 150, 200, 200, "Green", 300, 32, 0, false, null, false, false, 100, 100));
 
-		Properties Pennsylvania_Avenue = new Properties("Pennsylvania Avenue", 28,150,450,1000,1200,1400, 160, 200, 200, "Green", 320, 34, 0, false, null, false, false,100,100);
+		// Community Chest
+		board.add(new Properties("Community Chest", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 33, 0, false, null, false, false, 0, 0));
 
-// 	Short Line
+		// Pennsylvania Avenue
+		board.add(new Properties("Pennsylvania Avenue", 28, 150, 450, 1000, 1200, 1400, 160, 200, 200, "Green", 320, 34, 0, false, null, false, false, 100, 100));
 
-// 	CHANCE
+		// Short Line
+		board.add(new Properties("Short Line", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 35, 0, false, null, false, false, 0, 0));
 
-		Properties Park_Place = new Properties("Park Place", 35,175,500,1100,1300,1500, 175, 200, 200, "Dark Blue", 350, 37, 0, false, null, false, false,100,100);
+		// Chance
+		board.add(new Properties("Chance", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 36, 0, false, null, false, false, 0, 0));
 
-// Luxury Tax
+		// Park Place
+		board.add(new Properties("Park Place", 35, 175, 500, 1100, 1300, 1500, 175, 200, 200, "Dark Blue", 350, 37, 0, false, null, false, false, 100, 100));
 
-		Properties Boardwalk = new Properties("Boardwalk", 50,200,600,1400,1700,2000, 200, 200, 200, "Dark Blue", 400, 39, 0, false, null, false, false,100,100);
+		// Luxury Tax
+		board.add(new Properties("Luxury Tax", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 38, 0, false, null, false, false, 0, 0));
 
-
-
-
-
-
+		// Boardwalk
+		board.add(new Properties("Boardwalk", 50, 200, 600, 1400, 1700, 2000, 200, 200, 200, "Dark Blue", 400, 39, 0, false, null, false, false, 100, 100));
 	}
+
 }
