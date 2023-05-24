@@ -1,29 +1,29 @@
 public class Properties {
 
 	private String propName;
-	private double baseRent;
-	private double rentOne;
-	private double rentTwo;
-	private double rentThree;
-	private double rentFour;
-	private double rentHotel;
-	private double mortgageValue;
-	private double houseCost;
-	private double hotelCost;
+	private int baseRent;
+	private int rentOne;
+	private int rentTwo;
+	private int rentThree;
+	private int rentFour;
+	private int rentHotel;
+	private int mortgageValue;
+	private int houseCost;
+	private int hotelCost;
 	private String setColor;
-	private double price;
-	private double boardPosition;
+	private int price;
+	private int boardPosition;
 	private int numberOfHouses;
 	private boolean isHotel;
-	private String owner;
+	private Player owner;
 	private boolean isFullyOwned;
 	private boolean isMortgaged;
-	private double houseSellPrice;
-	private double hotelSellPrice;
+	private int houseSellPrice;
+	private int hotelSellPrice;
 
-	public Properties(String propName, double baseRent, double rentOne, double rentTwo, double rentThree, double rentFour, double rentHotel, double mortgageValue,
-			double houseCost, double hotelCost, String setColor, double price, double boardPosition, int numberOfHouses, boolean isHotel, String owner,
-			boolean isFullyOwned, boolean isMortgaged, double houseSellPrice, double hotelSellPrice) {
+	public Properties(String propName, int baseRent, int rentOne, int rentTwo, int rentThree, int rentFour, int rentHotel, int mortgageValue,
+			int houseCost, int hotelCost, String setColor, int price, int boardPosition, int numberOfHouses, boolean isHotel, Player owner,
+			boolean isFullyOwned, boolean isMortgaged, int houseSellPrice, int hotelSellPrice) {
 
 		this.propName = propName;
 		this.baseRent = baseRent;
@@ -49,206 +49,165 @@ public class Properties {
 	}
 
 	// Getters
-	public String getPropName()
-	{
-	return propName;
+	public String getPropName() {
+		return propName;
 	}
 
-	public double getBaseRent()
-	{
-	return baseRent;
+	public int getBaseRent() {
+		return baseRent;
 	}
 
-	public double  getRentOne()
-	{
-	return rentOne;
+	public int getRentOne() {
+		return rentOne;
 	}
 
-	public double getRentTwo()
-	{
-	return rentTwo;
+	public int getRentTwo() {
+		return rentTwo;
 	}
 
-	public double getRentThree()
-	{
-	return rentThree;
+	public int getRentThree() {
+		return rentThree;
 	}
 
-	public double getRentFour()
-	{
-	return rentFour;
+	public int getRentFour() {
+		return rentFour;
 	}
 
-	public double getRentHotel()
-	{
-	return rentHotel;
+	public int getRentHotel() {
+		return rentHotel;
 	}
 
-	public double getMortgageValue()
-	{
-	return mortgageValue;
+	public int getMortgageValue() {
+		return mortgageValue;
 	}
 
-	public double getHouseCost()
-	{
-	return houseCost;
+	public int getHouseCost() {
+		return houseCost;
 	}
 
-	public double getHotelCost()
-	{
-	return hotelCost;
+	public int getHotelCost() {
+		return hotelCost;
 	}
 
-	public String getSetColor()
-	{
-	return setColor;
+	public String getSetColor() {
+		return setColor;
 	}
 
-	public double getPrice()
-	{
-	return price;
+	public int getPrice() {
+		return price;
 	}
 
-	public double getBoardPosition()
-	{
-	return boardPosition;
+	public int getBoardPosition() {
+		return boardPosition;
 	}
 
-	public int getNumberOfHouses()
-	{
-	return numberOfHouses;
+	public int getNumberOfHouses() {
+		return numberOfHouses;
 	}
 
-	public boolean getIsHotel()
-	{
-	return isHotel;
+	public boolean getIsHotel() {
+		return isHotel;
 	}
 
-	public boolean getIsFullyOwned()
-	{
-	return isFullyOwned;
+	public boolean getIsFullyOwned() {
+		return isFullyOwned;
 	}
 
-	public String getOwner()
-	{
-	return owner;
+	public Player getOwner() {
+		return owner;
 	}
 
-	public boolean getIsMortgaged()
-	{
-	return isMortgaged;
+	public boolean getIsMortgaged() {
+		return isMortgaged;
 	}
 
-	public double getHouseSellPrice()
-	{
-	return houseSellPrice;
+	public int getHouseSellPrice() {
+		return houseSellPrice;
 	}
 
-	public double getHotelSellPrice()
-	{
-	return hotelSellPrice;
+	public int getHotelSellPrice() {
+		return hotelSellPrice;
 	}
 
-	//	Setters
+	// Setters
 
-	public void setPropName(String propertyName)
-	{
+	public void setPropName(String propertyName) {
 		this.propName = propertyName;
 	}
 
-	public void setBaseRent(double OriginalRent)
-	{
+	public void setBaseRent(int OriginalRent) {
 		this.baseRent = OriginalRent;
 	}
 
-	public void setRentOne(double rent1)
-	{
+	public void setRentOne(int rent1) {
 		this.rentOne = rent1;
 	}
 
-	public void setRentTwo(double rent2)
-	{
+	public void setRentTwo(int rent2) {
 		this.rentTwo = rent2;
 	}
 
-	public void setRentThree(double rent3)
-	{
+	public void setRentThree(int rent3) {
 		this.rentThree = rent3;
 	}
 
-	public void setRentFour(double rent4)
-	{
+	public void setRentFour(int rent4) {
 		this.rentFour = rent4;
 	}
 
-	public void setRentHotel(double rentH)
-	{
+	public void setRentHotel(int rentH) {
 		this.rentHotel = rentH;
 	}
 
-	public void setMortgageValue(double mortgageV)
-	{
+	public void setMortgageValue(int mortgageV) {
 		this.mortgageValue = mortgageV;
 	}
 
-	public void setHouseCost(double housePrice)
-	{
+	public void setHouseCost(int housePrice) {
 		this.houseCost = housePrice;
 	}
 
-	public void setHotelCost(double hotelPrice)
-	{
+	public void setHotelCost(int hotelPrice) {
 		this.hotelCost = hotelPrice;
 	}
 
-	public void setSetColor(String colorOfSet)
-	{
+	public void setSetColor(String colorOfSet) {
 		this.setColor = colorOfSet;
 	}
 
-	public void setPrice(double cost)
-	{
+	public void setPrice(int cost) {
 		this.price = cost;
 	}
 
-	public void setBoardPosition(double boardPos)
-	{
+	public void setBoardPosition(int boardPos) {
 		this.boardPosition = boardPos;
 	}
 
-	public void setNumberOfHouses(int numberHouses)
-	{
+	public void setNumberOfHouses(int numberHouses) {
 		this.numberOfHouses = numberHouses;
 	}
 
-	public void setIsHotel(boolean ifHotel)
-	{
+	public void setIsHotel(boolean ifHotel) {
 		this.isHotel = ifHotel;
 	}
 
-	public void setOwner(String player)
-	{
+	public void setOwner(Player player) {
 		this.owner = player;
 	}
 
-	public void setIsFullyOwned(boolean ifFullyOwned)
-	{
+	public void setIsFullyOwned(boolean ifFullyOwned) {
 		this.isFullyOwned = ifFullyOwned;
 	}
 
-	public void setIsMortgaged(boolean ifMortgaged)
-	{
+	public void setIsMortgaged(boolean ifMortgaged) {
 		this.isMortgaged = ifMortgaged;
 	}
 
-	public void setHouseSellPrice(double houseSellCost)
-	{
+	public void setHouseSellPrice(int houseSellCost) {
 		this.houseSellPrice = houseSellCost;
 	}
 
-	public void setHotelSellPrice(double hotelSellCost)
-	{
+	public void setHotelSellPrice(int hotelSellCost) {
 		this.hotelSellPrice = hotelSellCost;
 	}
-
 }
