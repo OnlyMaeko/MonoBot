@@ -8,6 +8,38 @@ public class Board {
 
 	public Board() {
 
+
+		// private String propName;
+		// private double baseRent;
+		// private double rentOne;
+		// private double rentTwo;
+		// private double rentThree;
+		// private double rentFour;
+		// private double rentHotel;
+		// private double mortgageValue;
+		// private double houseCost;
+		// private double hotelCost;
+		// private String setColor;
+		// private double price;
+		// private double boardPosition;
+		// private int numberOfHouses;
+		// private boolean isHotel;
+		// private String owner;
+		// private boolean isFullyOwned;
+		// private boolean isMortgaged;
+		// private double houseSellPrice;
+		// private double hotelSellPrice;
+
+
+/*
+
+For the railroad cards the rent 1,2,3, is the rent based on the number of railroads extra the owner Charles
+The way to distinguish the railroads
+
+
+
+*/
+
 		board = new ArrayList<>();
 
 		// GO
@@ -26,7 +58,7 @@ public class Board {
 		board.add(new Properties("Income Tax", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 4, 0, false, null, false, false, 0, 0));
 
 		// Reading Railroad
-		board.add(new Properties("Reading Railroad", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 5, 0, false, null, false, false, 0, 0));
+		board.add(new Properties("Reading Railroad", 25, 50, 100, 200, 0, 0, 100, 0, 0, "Railroad", 200, 5, 0, false, null, false, false, 0, 0));
 
 		// Oriental Avenue
 		board.add(new Properties("Oriental Avenue", 6, 30, 90, 270, 400, 550, 50, 50, 50, "Light Blue", 100, 6, 0, false, null, false, false, 25, 25));
@@ -56,7 +88,7 @@ public class Board {
 		board.add(new Properties("Virginia Avenue", 12, 60, 180, 500, 700, 900, 80, 100, 100, "Pink", 160, 14, 0, false, null, false, false, 50, 50));
 
 		// Pennsylvania Railroad
-		board.add(new Properties("Pennsylvania Railroad", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 15, 0, false, null, false, false, 0, 0));
+		board.add(new Properties("Pennsylvania Railroad", 25, 50, 100, 200, 0, 0, 100, 0, 0, "Railroad", 200, 15, 0, false, null, false, false, 0, 0));
 
 		// St. James Place
 		board.add(new Properties("St. James Place", 14, 70, 200, 550, 750, 950, 90, 100, 100, "Orange", 180, 16, 0, false, null, false, false, 50, 50));
@@ -86,7 +118,7 @@ public class Board {
 		board.add(new Properties("Illinois Avenue", 20, 100, 300, 750, 925, 1100, 120, 150, 150, "Red", 240, 24, 0, false, null, false, false, 75, 75));
 
 		// B & O Railroad
-		board.add(new Properties("B & O Railroad", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 25, 0, false, null, false, false, 0, 0));
+		board.add(new Properties("B & O Railroad", 25, 50, 100, 200, 0, 0, 100, 0, 0, "Railroad", 200, 25, 0, false, null, false, false, 0, 0));
 
 		// Atlantic Avenue
 		board.add(new Properties("Atlantic Avenue", 22, 110, 330, 800, 975, 1150, 130, 150, 150, "Yellow", 260, 26, 0, false, null, false, false, 75, 75));
@@ -116,7 +148,7 @@ public class Board {
 		board.add(new Properties("Pennsylvania Avenue", 28, 150, 450, 1000, 1200, 1400, 160, 200, 200, "Green", 320, 34, 0, false, null, false, false, 100, 100));
 
 		// Short Line
-		board.add(new Properties("Short Line", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 35, 0, false, null, false, false, 0, 0));
+		board.add(new Properties("Short Line", 0, 25, 50, 100, 200, 0, 100, 0, 0, "Railroad", 200, 35, 0, false, null, false, false, 0, 0));
 
 		// Chance
 		board.add(new Properties("Chance", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 36, 0, false, null, false, false, 0, 0));
