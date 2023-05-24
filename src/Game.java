@@ -16,7 +16,8 @@ public class Game {
 		}
 	}
 
-	public void playTurn(Player player) {
+	public void playTurn(Player player, int speedingCount) {
+
 		// Roll the dice
 		int dice1 = (int) (Math.random() * 6) + 1;
 		int dice2 = (int) (Math.random() * 6) + 1;
@@ -33,10 +34,25 @@ public class Game {
 		Properties currentProperty = board.getProperty(newPlayerLocation);
 
 		// TODO: Implement the logic for the player's actions based on the current property
+		if (currentProperty.getBaseRent() != 0) {
+			if (currentProperty.getOwner() == null) {
+				
+			} else {
+				currentProperty.getOwner().changeMoney(currentProperty.get);
+			}
+		}
 
 		// Print the dice roll and new location
 		System.out.println(player.getPlayerName() + " rolled the dice: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
 		System.out.println(player.getPlayerName() + " landed on " + currentProperty.getPropName());
+
+		if (dice1 == dice2) {
+			speedingCount++;
+			if (speedingCount == 2) {
+				// ADD GO TO JAIL IMPLEMENTATION
+			}
+			playTurn(player, speedingCount);
+		}
 
 	}
 
@@ -46,7 +62,7 @@ public class Game {
 		
 		// Play a turn for each player
 		for (Player player : game.players) {
-			game.playTurn(player);
+			game.playTurn(player, 0);
 		}
 	}
 
