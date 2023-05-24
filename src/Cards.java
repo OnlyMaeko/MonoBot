@@ -1,5 +1,3 @@
-package defaulta;
-
 public class Cards {
 
 	private String cardName;
