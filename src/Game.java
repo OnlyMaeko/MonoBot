@@ -14,20 +14,41 @@ public class Game {
 		isGameOver = false;
 
 		for (int i = 0; i < 6; i++) {
-			players.add(new Player("Player " + (i + 1), 0, new ArrayList<Properties>(), 1500));
+			players.add(new Player("Player " + (i + 1), 0, new ArrayList<Properties>(), 1500, false));
 		}
 	}
 
-	public void playTurn(Player player, int speedingCount) {
+	public void playTurn(Player player, int speedingCount, int jailCount) {
 
 		// Roll the dice
 		int dice1 = (int) (Math.random() * 6) + 1;
 		int dice2 = (int) (Math.random() * 6) + 1;
 		int totalDiceRoll = dice1 + dice2;
 
+		if(player.getInJail() == true && (dice1 == dice2)){
+			player.setInJail(false);
+		}
+
+		else if(player.getInJail() == true && (jailCount < 2)){
+			// The only thing you can't do while in jail is move and land on properties so we've just gotta skip the location update
+			jailCount++;
+		}
+
+		else if(player.getInJail() == true && (jailCount == 2)){
+			player.setInJail(false);
+			player.changeMoney(-50);
+		}
+
+
+
 		// Move the player
 		int currentPlayerLocation = player.getLocation();
 		int newPlayerLocation = (currentPlayerLocation + totalDiceRoll) % 40;
+		
+		// If you've crossed Go it means it went under 0 so you gain $200
+		if(newPlayerLocation < currentPlayerLocation){
+			player.changeMoney(200);
+		}
 
 		// Update the player's location
 		player.setLocation(newPlayerLocation);
@@ -57,10 +78,20 @@ public class Game {
 
 		if (dice1 == dice2) {
 			speedingCount++;
-			if (speedingCount == 2) {
-				// ADD GO TO JAIL IMPLEMENTATION
+
+			if(speedingCount <= 2) {
+				playTurn(player, speedingCount);
 			}
-			playTurn(player, speedingCount);
+
+			else if (speedingCount == 2) {
+				// ADD GO TO JAIL IMPLEMENTATION
+
+				player.setLocation(10);
+				player.setInJail(true);
+				jailCount++;
+			
+			}
+			
 		}
 
 	}

@@ -6,12 +6,14 @@ public class Player {
 	private String playerName;
 	private ArrayList<Properties> ownedProperties;
 	private int moneyAmount;
+	private boolean inJail;
 
-	public Player(String playerName, int locationOnBoard, ArrayList<Properties> ownedProperties, int moneyAmount) {
+	public Player(String playerName, int locationOnBoard, ArrayList<Properties> ownedProperties, int moneyAmount, boolean inJail) {
 		this.playerName = playerName;
 		this.location = locationOnBoard;
 		this.ownedProperties = ownedProperties;
 		this.moneyAmount = moneyAmount;
+		this.inJail = inJail;
 	}
 
 	// Getters
@@ -29,6 +31,10 @@ public class Player {
 
 	public int getMoneyAmount() {
 		return moneyAmount;
+	}
+
+	public boolean getInJail() {
+		return inJail;
 	}
 
 	// Setters
@@ -52,4 +58,7 @@ public class Player {
 		this.moneyAmount += money;
 	}
 
+	public void setInJail(boolean inJail) {
+		this.inJail = inJail;
+	}
 }
