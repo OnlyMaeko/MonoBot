@@ -27,6 +27,7 @@ public class Game {
 
 		if(player.getInJail() == true && (dice1 == dice2)){
 			player.setInJail(false);
+			jailCount = 0;
 		}
 
 		else if(player.getInJail() == true && (jailCount < 2)){
@@ -37,37 +38,44 @@ public class Game {
 		else if(player.getInJail() == true && (jailCount == 2)){
 			player.setInJail(false);
 			player.changeMoney(-50);
+			jailCount = 0;
 		}
 
-
-
-		// Move the player
-		int currentPlayerLocation = player.getLocation();
-		int newPlayerLocation = (currentPlayerLocation + totalDiceRoll) % 40;
+		// TODO: Declaration for currentplayerlocation must be outside this if statement - we can rework all of jail into a method maybe? So game is smooth
 		
-		// If you've crossed Go it means it went under 0 so you gain $200
-		if(newPlayerLocation < currentPlayerLocation){
-			player.changeMoney(200);
-		}
+		
+		if(player.getInJail() == false) {
 
-		// Update the player's location
-		player.setLocation(newPlayerLocation);
 
-		// Perform actions based on the new location
-		Properties currentProperty = board.getProperty(newPlayerLocation);
+			// Move the player
+			int currentPlayerLocation = player.getLocation();
+			int newPlayerLocation = (currentPlayerLocation + totalDiceRoll) % 40;
+			
+			// If you've crossed Go it means it went under 0 so you gain $200
+			if(newPlayerLocation < currentPlayerLocation){
+				player.changeMoney(200);
+			}
 
-		// TODO: Implement the logic for the player's actions based on the current property
-		if (currentProperty.getBaseRent() != 0) {
-			if (currentProperty.getOwner() == null) {
-				buy(player, board);
-				System.out.println(player.getPlayerName() + " bought " + currentProperty.getPropName());
-			} else {
-				if (currentProperty.getIsMortgaged() == false) {
-					rent(player, currentProperty.getOwner(), board);
-					if (player.getMoneyAmount() <= 0 && player.getOwnedProperties().isEmpty()) {
-						players.remove(player);
+			// Update the player's location
+			player.setLocation(newPlayerLocation);
+
+			// Perform actions based on the new location
+			Properties currentProperty = board.getProperty(newPlayerLocation);
+
+			// TODO: Implement the logic for the player's actions based on the current property
+
+			if (currentProperty.getBaseRent() != 0) {
+				if (currentProperty.getOwner() == null) {
+					buy(player, board);
+					System.out.println(player.getPlayerName() + " bought " + currentProperty.getPropName());
+				} else {
+					if (currentProperty.getIsMortgaged() == false) {
+						rent(player, currentProperty.getOwner(), board);
+						if (player.getMoneyAmount() <= 0 && player.getOwnedProperties().isEmpty()) {
+							players.remove(player);
+						}
+						System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + currentProperty.getBaseRent());
 					}
-					System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + currentProperty.getBaseRent());
 				}
 			}
 		}
@@ -80,7 +88,7 @@ public class Game {
 			speedingCount++;
 
 			if(speedingCount <= 2) {
-				playTurn(player, speedingCount);
+				playTurn(player, speedingCount,0);
 			}
 
 			else if (speedingCount == 2) {
@@ -103,7 +111,7 @@ public class Game {
 		// Play a turn for each player
 		while (game.players.size() > 1) {
 			for (Player player : game.players) {
-				game.playTurn(player, 0);
+				game.playTurn(player, 0, 0);
 			}
 		}
 
