@@ -114,32 +114,50 @@ public class Game {
 					switch (cardName) {
 						case "Boardwalk":
 							player.setLocation(39);
-							// TODO: Implement logic for collecting $200
+							updateGameState(player, currentProperty, totalDiceRoll);
 							break;
 						case "Go":
 							player.setLocation(0);
-							// TODO: Implement logic for collecting $200
+							updateGameState(player, currentProperty, totalDiceRoll);
+							player.changeMoney(200);
 							break;
 						case "Illinois":
-							// TODO: Implement logic for advancing to Illinois Avenue
+							player.setLocation(24);
+							updateGameState(player, currentProperty, totalDiceRoll);
+							if (newPlayerLocation < currentPlayerLocation) {
+								player.changeMoney(200);
+							}
 							break;
 						case "StCharles":
-							// TODO: Implement logic for advancing to St. Charles Place
+							player.setLocation(11);
+							updateGameState(player, currentProperty, totalDiceRoll);
+							if (newPlayerLocation < currentPlayerLocation) {
+								player.changeMoney(200);
+							}
 							break;
 						case "Railroad":
-							// TODO: Implement logic for advancing to the nearest Railroad
+						player.setLocation((player.getLocation() % 10) + 5);
+							updateGameState(player, currentProperty, totalDiceRoll);
+							if (newPlayerLocation < currentPlayerLocation) {
+								player.changeMoney(200);
+							}
 							break;
 						case "Utility":
-							// TODO: Implement logic for advancing to the nearest Utility
+						// TODO: Change mod 10 to 12 and 28
+							player.setLocation((player.getLocation() % 10) + 5);
+							updateGameState(player, currentProperty, totalDiceRoll);
+							if (newPlayerLocation < currentPlayerLocation) {
+								player.changeMoney(200);
+							}		
 							break;
 						case "Get50":
-							// TODO: Implement logic for receiving $50 dividend from the bank
+							player.changeMoney(50);
 							break;
 						case "GetOutOfJail":
 							// TODO: Implement logic for acquiring a "Get Out of Jail Free" card
 							break;
 						case "GoBack3":
-							// TODO: Implement logic for moving the player back 3 spaces
+							player.setLocation(player.getLocation() - 3);
 							break;
 						case "GoToJail":
 							player.setLocation(10);
@@ -147,19 +165,27 @@ public class Game {
 							break;
 						case "PropertyRepairs":
 							// TODO: Implement logic for making repairs on all owned properties
+
+							for(int i = 0; i < player.getOwnedProperties().size(); i++) {
+								
+							}
+
 							break;
 						case "Pay15":
-							// TODO: Implement logic for paying a $15 speeding fine
+							player.changeMoney(-15);
 							break;
 						case "Reading":
 							player.setLocation(5);
-							// TODO: Implement logic for collecting $200 if passed Go
+							player.changeMoney(200);
 							break;
 						case "PayEachPlayer50":
-							// TODO: Implement logic for paying each player $50
+							player.changeMoney(players.size() * 50);
+							for(int i = 0; i <= players.size(); i++){
+							// TODO: players<i>	.changeMoney(50);
+							}
 							break;
 						case "Get150":
-							// TODO: Implement logic for collecting $150
+							player.changeMoney(150);
 							break;
 						default:
 							System.out.println("wtf");
@@ -317,6 +343,39 @@ public class Game {
 			}
 		}
 		return count == board.getPropertySetSize(setColor);
+	}
+
+	public void updateGameState(Player player, Properties currentProperty, int totalDiceRoll) {
+
+		
+
+		if (currentProperty.getBaseRent() != 0) {
+			if (currentProperty.getOwner() == null) {
+				buy(player, board);
+					System.out.println(player.getPlayerName() + " bought " + currentProperty.getPropName());
+			} else {
+				if (currentProperty.getIsMortgaged() == false && currentProperty.getOwner() != player) {
+					if (currentProperty.getSetColor().equals("Utility")) {
+							int money = 0;
+					if (currentProperty.getIsFullyOwned()) {
+						money = (currentProperty.getRentOne() * totalDiceRoll);
+					} 
+					else {
+						money = (currentProperty.getBaseRent() * totalDiceRoll);
+					}
+						player.changeMoney(-money);
+						currentProperty.getOwner().changeMoney(money);
+						System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
+					} 
+					else {
+						rent(player, currentProperty.getOwner(), board);
+					}
+					if (player.getMoneyAmount() <= 0 && player.getOwnedProperties().isEmpty()) {
+						players.remove(player);
+					}
+				}
+			}
+
 	}
 
 }
