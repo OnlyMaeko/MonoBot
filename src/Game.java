@@ -25,23 +25,24 @@ public class Game {
 		int dice2 = (int) (Math.random() * 6) + 1;
 		int totalDiceRoll = dice1 + dice2;
 
-		if(player.getInJail() == true && (dice1 == dice2)){
+		if (player.getInJail() == true && (dice1 == dice2)) {
 			player.setInJail(false);
 			jailCount = 0;
 		}
 
-		else if(player.getInJail() == true && (jailCount < 2)){
+		else if	(player.getInJail() == true && (jailCount < 2)) {
 			// The only thing you can't do while in jail is move and land on properties so we've just gotta skip the location update
 			jailCount++;
 		}
 
-		else if(player.getInJail() == true && (jailCount == 2)){
+		else if	(player.getInJail() == true && (jailCount == 2) && (dice1 != dice2)) {
 			player.setInJail(false);
+			// TODO: Check to make sure the boul isnt broke && make sure to check goojf and ask to see if they want to pay
 			player.changeMoney(-50);
 			jailCount = 0;
 		}
 
-		// TODO: Declaration for currentplayerlocation must be outside this if statement - we can rework all of jail into a method maybe? So game is smooth
+			// TODO: Declaration for currentplayerlocation must be outside this if statement - we can rework all of jail into a method maybe? So game is smooth
 		
 		
 		if(player.getInJail() == false) {
@@ -78,11 +79,12 @@ public class Game {
 					}
 				}
 			}
-		}
-
 		// Print the dice roll and new location
 		System.out.println(player.getPlayerName() + " rolled the dice: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
 		System.out.println(player.getPlayerName() + " landed on " + currentProperty.getPropName());
+		}
+
+		
 
 		if (dice1 == dice2) {
 			speedingCount++;
@@ -96,7 +98,6 @@ public class Game {
 
 				player.setLocation(10);
 				player.setInJail(true);
-				jailCount++;
 			
 			}
 			
