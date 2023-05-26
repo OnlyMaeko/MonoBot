@@ -5,13 +5,19 @@ public class Player {
 	private int location;
 	private String playerName;
 	private ArrayList<Properties> ownedProperties;
+	private ArrayList<Properties> ownedRailroads;
+	private ArrayList<Properties> ownedUtilities;
 	private int moneyAmount;
 	private boolean inJail;
 
-	public Player(String playerName, int locationOnBoard, ArrayList<Properties> ownedProperties, int moneyAmount, boolean inJail) {
+	public Player(String playerName, int locationOnBoard, ArrayList<Properties> ownedProperties, 
+				  ArrayList<Properties> ownedRailroads, ArrayList<Properties> ownedUtilities, 
+				  int moneyAmount, boolean inJail) {
 		this.playerName = playerName;
 		this.location = locationOnBoard;
 		this.ownedProperties = ownedProperties;
+		this.ownedRailroads = ownedRailroads;
+		this.ownedUtilities = ownedUtilities;
 		this.moneyAmount = moneyAmount;
 		this.inJail = inJail;
 	}
@@ -27,6 +33,14 @@ public class Player {
 
 	public ArrayList<Properties> getOwnedProperties() {
 		return ownedProperties;
+	}
+
+	public ArrayList<Properties> getOwnedRailroads() {
+		return ownedRailroads;
+	}
+
+	public ArrayList<Properties> getOwnedUtilities() {
+		return ownedUtilities;
 	}
 
 	public int getMoneyAmount() {
@@ -48,6 +62,14 @@ public class Player {
 
 	public void setOwnedProperties(ArrayList<Properties> ownedProperties) {
 		this.ownedProperties = ownedProperties;
+	}
+
+	public void setOwnedRailroads(ArrayList<Properties> ownedRailroads) {
+		this.ownedRailroads = ownedRailroads;
+	}
+
+	public void setOwnedUtilities(ArrayList<Properties> ownedUtilities) {
+		this.ownedUtilities = ownedUtilities;
 	}
 
 	public void setMoneyAmount(int moneyAmount) {

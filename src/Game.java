@@ -13,8 +13,10 @@ public class Game {
 		players = new ArrayList<>();
 		isGameOver = false;
 
-		for (int i = 0; i < 6; i++) {
-			players.add(new Player("Player " + (i + 1), 0, new ArrayList<Properties>(), 1500, false));
+		for (int i = 0; i < 2; i++) {
+			players.add(new Player("Player " + (i + 1), 0, 
+									new ArrayList<Properties>(), new ArrayList<Properties>(), 
+									new ArrayList<Properties>(), 1500, false));
 		}
 	}
 
@@ -45,15 +47,14 @@ public class Game {
 			// TODO: Declaration for currentplayerlocation must be outside this if statement - we can rework all of jail into a method maybe? So game is smooth
 		
 		
-		if(player.getInJail() == false) {
-
+		if (player.getInJail() == false) {
 
 			// Move the player
 			int currentPlayerLocation = player.getLocation();
 			int newPlayerLocation = (currentPlayerLocation + totalDiceRoll) % 40;
 			
 			// If you've crossed Go it means it went under 0 so you gain $200
-			if(newPlayerLocation < currentPlayerLocation){
+			if (newPlayerLocation < currentPlayerLocation) {
 				player.changeMoney(200);
 			}
 
@@ -70,14 +71,27 @@ public class Game {
 					buy(player, board);
 					System.out.println(player.getPlayerName() + " bought " + currentProperty.getPropName());
 				} else {
-					if (currentProperty.getIsMortgaged() == false) {
-						rent(player, currentProperty.getOwner(), board);
+					if (currentProperty.getIsMortgaged() == false && currentProperty.getOwner() != player) {
+						if (currentProperty.getSetColor().equals("Utility")) {
+							int money = 0;
+							if (currentProperty.getIsFullyOwned()) {
+								money = (currentProperty.getRentOne() * totalDiceRoll);
+							} else {
+								money = (currentProperty.getBaseRent() * totalDiceRoll);
+							}
+							player.changeMoney(-money);
+							currentProperty.getOwner().changeMoney(money);
+							System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
+						} else {
+							rent(player, currentProperty.getOwner(), board);
+						}
 						if (player.getMoneyAmount() <= 0 && player.getOwnedProperties().isEmpty()) {
 							players.remove(player);
 						}
-						System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + currentProperty.getBaseRent());
 					}
 				}
+			} else {
+				// CARDS
 			}
 		// Print the dice roll and new location
 		System.out.println(player.getPlayerName() + " rolled the dice: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
@@ -110,7 +124,7 @@ public class Game {
 		game.startGame();
 		
 		// Play a turn for each player
-		while (game.players.size() > 1) {
+		for (int i = 0; i < 50; i++) {
 			for (Player player : game.players) {
 				game.playTurn(player, 0, 0);
 			}
@@ -137,6 +151,7 @@ public class Game {
 			money = currentProperty.getBaseRent();
 			player.changeMoney(-money);
 			owner.changeMoney(money);
+			System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 
 		} else {
 
@@ -147,36 +162,42 @@ public class Game {
 				money = currentProperty.getBaseRent() * 2;
 				player.changeMoney(-money);
 				owner.changeMoney(money);
+				System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 			}
 
 			if (hotel == true) {
 				money = currentProperty.getRentHotel();
 				player.changeMoney(-money);
 				owner.changeMoney(money);
+				System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 			}
 
 			if (houses == 1) {
 				money = currentProperty.getRentOne();
 				player.changeMoney(-money);
 				owner.changeMoney(money);
+				System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 			}
 
 			if (houses == 2) {
 				money = currentProperty.getRentTwo();
 				player.changeMoney(-money);
 				owner.changeMoney(money);
+				System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 			}
 
 			if (houses == 3) {
 				money = currentProperty.getRentThree();
 				player.changeMoney(-money);
 				owner.changeMoney(money);
+				System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 			}
 
 			if (houses == 4) {
 				money = currentProperty.getRentFour();
 				player.changeMoney(-money);
 				owner.changeMoney(money);
+				System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 			}
 		}
 	}
@@ -185,10 +206,60 @@ public class Game {
 		int currentPlayerLocation = player.getLocation();
 		Properties currentProperty = board.getProperty(currentPlayerLocation);
 		if (player.getMoneyAmount() >= currentProperty.getPrice()) {
-			player.getOwnedProperties().add(currentProperty);
+			if (currentProperty.getSetColor().equals("Railroad")) {
+				// add property to list of railroads, if you own more than 1, set isFullyOwned to true
+				// to maintain proper rent functionality
+				player.getOwnedRailroads().add(currentProperty);
+				for (Properties railroad : player.getOwnedRailroads()) {
+					if (player.getOwnedRailroads().size() >= 2) {
+						railroad.setIsFullyOwned(true);
+					}
+					railroad.setNumberOfHouses(player.getOwnedRailroads().size() - 1);
+				}
+			} else if (currentProperty.getSetColor().equals("Utility")) {
+				// add property to list of utilities, if you own more than 1, set isFullyOwned to true
+				// to maintain proper rent functionality
+				player.getOwnedUtilities().add(currentProperty);
+				for (Properties utility : player.getOwnedUtilities()) {
+					if (player.getOwnedUtilities().size() == 2) {
+						utility.setIsFullyOwned(true);
+					}
+					utility.setNumberOfHouses(player.getOwnedUtilities().size() - 1);
+				}
+			} else {
+				// add property to list of properties, if you own all of that set, set isFullyOwned for
+				// all properties of that set color to true
+				player.getOwnedProperties().add(currentProperty);
+				if (hasMonopoly(player.getOwnedProperties(), currentProperty.getSetColor(), board)) {
+					for (Properties property : player.getOwnedProperties()) {
+						if (property.getSetColor().equals(currentProperty.getSetColor())) {
+							property.setIsFullyOwned(true);
+						}
+					}
+				}
+			}
 			currentProperty.setOwner(player);
 			player.changeMoney(-currentProperty.getPrice());
 		}
+	}
+
+	public void upgradeProperty(Properties property) {
+		int numHouses = property.getNumberOfHouses();
+		if (numHouses < 4) {
+			property.setNumberOfHouses(numHouses++);
+		} else {
+			property.setIsHotel(true);
+		}
+	}
+
+	public boolean hasMonopoly(ArrayList<Properties> propertyList, String setColor, Board board) {
+		int count = 0;
+		for (Properties property : propertyList) {
+			if (property.getSetColor().equals(setColor)) {
+				count++;
+			}
+		}
+		return count == board.getPropertySetSize(setColor);
 	}
 
 }
