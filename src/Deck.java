@@ -82,6 +82,24 @@ public class Deck {
 		Collections.shuffle(communityChestDeck);
 
 	}
+	
+	    // Getters
+		public List<Cards> getChanceDeck() {
+			return chanceDeck;
+		}
+	
+		public List<Cards> getCommunityChestDeck() {
+			return communityChestDeck;
+		}
+	
+		// Setters
+		public void setChanceDeck(List<Cards> chanceDeck) {
+			this.chanceDeck = chanceDeck;
+		}
+	
+		public void setCommunityChestDeck(List<Cards> communityChestDeck) {
+			this.communityChestDeck = communityChestDeck;
+		}
 
 }
 

@@ -64,6 +64,17 @@ public class Game {
 			// Perform actions based on the new location
 			Properties currentProperty = board.getProperty(newPlayerLocation);
 
+			if (dice1 == dice2) {
+				speedingCount++;
+				if (speedingCount <= 2) {
+					playTurn(player, speedingCount,0);
+				}
+				else if (speedingCount == 2) {
+					player.setLocation(10);
+					player.setInJail(true);
+				}
+			}
+
 			// TODO: Implement the logic for the player's actions based on the current property
 
 			if (currentProperty.getBaseRent() != 0) {
@@ -91,30 +102,76 @@ public class Game {
 					}
 				}
 			} else {
-				// CARDS
+				if (currentProperty.getBoardPosition() == 30) {
+					player.setLocation(10);
+					player.setInJail(true);
+				} else if (currentProperty.getPropName().equals("Chance")) {
+					Cards card = deck.getChanceDeck().get(0);
+					deck.getChanceDeck().remove(0);
+					deck.getChanceDeck().add(card);
+
+					String cardName = card.getCardName();
+					switch (cardName) {
+						case "Boardwalk":
+							player.setLocation(39);
+							// TODO: Implement logic for collecting $200
+							break;
+						case "Go":
+							player.setLocation(0);
+							// TODO: Implement logic for collecting $200
+							break;
+						case "Illinois":
+							// TODO: Implement logic for advancing to Illinois Avenue
+							break;
+						case "StCharles":
+							// TODO: Implement logic for advancing to St. Charles Place
+							break;
+						case "Railroad":
+							// TODO: Implement logic for advancing to the nearest Railroad
+							break;
+						case "Utility":
+							// TODO: Implement logic for advancing to the nearest Utility
+							break;
+						case "Get50":
+							// TODO: Implement logic for receiving $50 dividend from the bank
+							break;
+						case "GetOutOfJail":
+							// TODO: Implement logic for acquiring a "Get Out of Jail Free" card
+							break;
+						case "GoBack3":
+							// TODO: Implement logic for moving the player back 3 spaces
+							break;
+						case "GoToJail":
+							player.setLocation(10);
+							player.setInJail(true);
+							break;
+						case "PropertyRepairs":
+							// TODO: Implement logic for making repairs on all owned properties
+							break;
+						case "Pay15":
+							// TODO: Implement logic for paying a $15 speeding fine
+							break;
+						case "Reading":
+							player.setLocation(5);
+							// TODO: Implement logic for collecting $200 if passed Go
+							break;
+						case "PayEachPlayer50":
+							// TODO: Implement logic for paying each player $50
+							break;
+						case "Get150":
+							// TODO: Implement logic for collecting $150
+							break;
+						default:
+							System.out.println("wtf");
+							break;
+					}
+				} else if (currentProperty.getPropName().equals("Community Chest")) {
+
+				}
 			}
 		// Print the dice roll and new location
 		System.out.println(player.getPlayerName() + " rolled the dice: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
 		System.out.println(player.getPlayerName() + " landed on " + currentProperty.getPropName());
-		}
-
-		
-
-		if (dice1 == dice2) {
-			speedingCount++;
-
-			if(speedingCount <= 2) {
-				playTurn(player, speedingCount,0);
-			}
-
-			else if (speedingCount == 2) {
-				// ADD GO TO JAIL IMPLEMENTATION
-
-				player.setLocation(10);
-				player.setInJail(true);
-			
-			}
-			
 		}
 
 	}
