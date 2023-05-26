@@ -44,8 +44,10 @@ public class Game {
 			jailCount = 0;
 		}
 
-			// TODO: Declaration for currentplayerlocation must be outside this if statement - we can rework all of jail into a method maybe? So game is smooth
-		
+		if (dice1 == dice2 && speedingCount == 2) {
+			player.setLocation(10);
+			player.setInJail(true);
+		}
 		
 		if (player.getInJail() == false) {
 
@@ -64,43 +66,10 @@ public class Game {
 			// Perform actions based on the new location
 			Properties currentProperty = board.getProperty(newPlayerLocation);
 
-			if (dice1 == dice2) {
-				speedingCount++;
-				if (speedingCount <= 2) {
-					playTurn(player, speedingCount,0);
-				}
-				else if (speedingCount == 2) {
-					player.setLocation(10);
-					player.setInJail(true);
-				}
-			}
-
 			// TODO: Implement the logic for the player's actions based on the current property
 
 			if (currentProperty.getBaseRent() != 0) {
-				if (currentProperty.getOwner() == null) {
-					buy(player, board);
-					System.out.println(player.getPlayerName() + " bought " + currentProperty.getPropName());
-				} else {
-					if (currentProperty.getIsMortgaged() == false && currentProperty.getOwner() != player) {
-						if (currentProperty.getSetColor().equals("Utility")) {
-							int money = 0;
-							if (currentProperty.getIsFullyOwned()) {
-								money = (currentProperty.getRentOne() * totalDiceRoll);
-							} else {
-								money = (currentProperty.getBaseRent() * totalDiceRoll);
-							}
-							player.changeMoney(-money);
-							currentProperty.getOwner().changeMoney(money);
-							System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
-						} else {
-							rent(player, currentProperty.getOwner(), board);
-						}
-						if (player.getMoneyAmount() <= 0 && player.getOwnedProperties().isEmpty()) {
-							players.remove(player);
-						}
-					}
-				}
+				updateGameState(player, currentProperty, totalDiceRoll);
 			} else {
 				if (currentProperty.getBoardPosition() == 30) {
 					player.setLocation(10);
@@ -109,7 +78,6 @@ public class Game {
 					Cards card = deck.getChanceDeck().get(0);
 					deck.getChanceDeck().remove(0);
 					deck.getChanceDeck().add(card);
-
 					String cardName = card.getCardName();
 					switch (cardName) {
 						case "Boardwalk":
@@ -124,31 +92,38 @@ public class Game {
 						case "Illinois":
 							player.setLocation(24);
 							updateGameState(player, currentProperty, totalDiceRoll);
-							if (newPlayerLocation < currentPlayerLocation) {
+							if (player.getLocation() < newPlayerLocation) {
 								player.changeMoney(200);
 							}
 							break;
 						case "StCharles":
 							player.setLocation(11);
 							updateGameState(player, currentProperty, totalDiceRoll);
-							if (newPlayerLocation < currentPlayerLocation) {
+							if (player.getLocation() < newPlayerLocation) {
 								player.changeMoney(200);
 							}
 							break;
 						case "Railroad":
-						player.setLocation((player.getLocation() % 10) + 5);
-							updateGameState(player, currentProperty, totalDiceRoll);
-							if (newPlayerLocation < currentPlayerLocation) {
+							if (player.getLocation() == 7) {
+								player.setLocation(15);
+							} else if (player.getLocation() == 22) {
+								player.setLocation(25);
+							} else {
+								player.setLocation(5);
 								player.changeMoney(200);
 							}
+							updateGameState(player, currentProperty, totalDiceRoll);
 							break;
 						case "Utility":
-						// TODO: Change mod 10 to 12 and 28
-							player.setLocation((player.getLocation() % 10) + 5);
-							updateGameState(player, currentProperty, totalDiceRoll);
-							if (newPlayerLocation < currentPlayerLocation) {
+							if (player.getLocation() == 7) {
+								player.setLocation(12);
+							} else if (player.getLocation() == 22) {
+								player.setLocation(28);
+							} else {
+								player.setLocation(12);
 								player.changeMoney(200);
-							}		
+							}
+							updateGameState(player, currentProperty, totalDiceRoll);		
 							break;
 						case "Get50":
 							player.changeMoney(50);
@@ -164,12 +139,16 @@ public class Game {
 							player.setInJail(true);
 							break;
 						case "PropertyRepairs":
-							// TODO: Implement logic for making repairs on all owned properties
-
-							for(int i = 0; i < player.getOwnedProperties().size(); i++) {
-								
+							int totalRepairCost = 0;
+							for (Properties property : player.getOwnedProperties()) {
+								int numberOfHouses = property.getNumberOfHouses();
+								if (property.getIsHotel()) {
+									totalRepairCost += 100;
+								} else {
+									totalRepairCost += 25 * numberOfHouses;
+								}
 							}
-
+							player.changeMoney(-totalRepairCost);
 							break;
 						case "Pay15":
 							player.changeMoney(-15);
@@ -179,9 +158,12 @@ public class Game {
 							player.changeMoney(200);
 							break;
 						case "PayEachPlayer50":
-							player.changeMoney(players.size() * 50);
-							for(int i = 0; i <= players.size(); i++){
-							// TODO: players<i>	.changeMoney(50);
+							int paymentAmount = (players.size() - 1) * 50;
+							player.changeMoney(-paymentAmount);
+							for (Player otherPlayer : players) {
+								if (otherPlayer != player) {
+									otherPlayer.changeMoney(50);
+								}
 							}
 							break;
 						case "Get150":
@@ -192,12 +174,81 @@ public class Game {
 							break;
 					}
 				} else if (currentProperty.getPropName().equals("Community Chest")) {
-
+					Cards card = deck.getCommunityChestDeck().get(0);
+					deck.getCommunityChestDeck().remove(0);
+					deck.getCommunityChestDeck().add(card);
+					String cardName = card.getCardName();
+					switch (cardName) {
+						case "Get200":
+							player.changeMoney(200);
+							break;
+						case "Go":
+							player.setLocation(0);
+							player.changeMoney(200);
+							break;
+						case "Pay50":
+							player.changeMoney(-50);
+							break;
+						case "Get50":
+							player.changeMoney(50);
+							break;
+						case "GetOutOfJail":
+							//GOOJF
+							break;
+						case "GoToJail":
+							player.setLocation(10);
+							player.setInJail(true);
+							break;		
+						case "Get100":
+							player.changeMoney(100);
+							break;
+						case "Get20":
+							player.changeMoney(20);
+							break;
+						case "Get10FromEachPlayer":
+							int paymentAmount = (players.size() - 1) * 10;
+							player.changeMoney(paymentAmount);
+							for (Player otherPlayer : players) {
+								if (otherPlayer != player) {
+									otherPlayer.changeMoney(-10);
+								}
+							}
+							break;
+						case "Pay100":
+							player.changeMoney(-100);
+							break;
+						case "Get25":
+							player.changeMoney(25);
+							break;
+						case "StreetRepairs":
+							int totalRepairCost = 0;
+							for (Properties property : player.getOwnedProperties()) {
+								int numberOfHouses = property.getNumberOfHouses();
+								if (property.getIsHotel()) {
+									totalRepairCost += 115;
+								} else {
+									totalRepairCost += 40 * numberOfHouses;
+								}
+							}
+							player.changeMoney(-totalRepairCost);
+							break;
+						case "Get10":
+							player.changeMoney(-10);
+							break;
+						default:
+							System.out.println("wtf");
+							break;
+					}
 				}
 			}
 		// Print the dice roll and new location
 		System.out.println(player.getPlayerName() + " rolled the dice: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
 		System.out.println(player.getPlayerName() + " landed on " + currentProperty.getPropName());
+		}
+
+		if (dice1 == dice2) {
+			speedingCount++;
+			playTurn(player, speedingCount,0);
 		}
 
 	}
@@ -346,36 +397,32 @@ public class Game {
 	}
 
 	public void updateGameState(Player player, Properties currentProperty, int totalDiceRoll) {
-
-		
-
-		if (currentProperty.getBaseRent() != 0) {
-			if (currentProperty.getOwner() == null) {
-				buy(player, board);
-					System.out.println(player.getPlayerName() + " bought " + currentProperty.getPropName());
-			} else {
-				if (currentProperty.getIsMortgaged() == false && currentProperty.getOwner() != player) {
-					if (currentProperty.getSetColor().equals("Utility")) {
-							int money = 0;
+		if (currentProperty.getOwner() == null) {
+			buy(player, board);
+			System.out.println(player.getPlayerName() + " bought " + currentProperty.getPropName());
+		} else {
+			if (currentProperty.getIsMortgaged() == false && currentProperty.getOwner() != player) {
+				if (currentProperty.getSetColor().equals("Utility")) {
+					int money = 0;
 					if (currentProperty.getIsFullyOwned()) {
 						money = (currentProperty.getRentOne() * totalDiceRoll);
-					} 
-					else {
+					} else {
 						money = (currentProperty.getBaseRent() * totalDiceRoll);
 					}
-						player.changeMoney(-money);
-						currentProperty.getOwner().changeMoney(money);
-						System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
-					} 
-					else {
-						rent(player, currentProperty.getOwner(), board);
-					}
-					if (player.getMoneyAmount() <= 0 && player.getOwnedProperties().isEmpty()) {
+					player.changeMoney(-money);
+					currentProperty.getOwner().changeMoney(money);
+					System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
+				} else {
+					rent(player, currentProperty.getOwner(), board);
+				}
+				if (player.getMoneyAmount() <= 0 && player.getOwnedProperties().isEmpty()
+					&& player.getOwnedRailroads().isEmpty() && player.getOwnedUtilities().isEmpty()) {
 						players.remove(player);
-					}
 				}
 			}
-
+		}
 	}
+
+
 
 }
