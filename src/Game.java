@@ -16,11 +16,13 @@ public class Game {
 		for (int i = 0; i < 2; i++) {
 			players.add(new Player("Player " + (i + 1), 0, 
 									new ArrayList<Properties>(), new ArrayList<Properties>(), 
-									new ArrayList<Properties>(), 1500, false));
+									new ArrayList<Properties>(), 1500, 0, false));
 		}
 	}
 
-	public void playTurn(Player player, int speedingCount, int jailCount) {
+	public void playTurn(Player player, int speedingCount) {
+
+		System.out.println("/////////////////////////");
 
 		// Roll the dice
 		int dice1 = (int) (Math.random() * 6) + 1;
@@ -29,19 +31,19 @@ public class Game {
 
 		if (player.getInJail() == true && (dice1 == dice2)) {
 			player.setInJail(false);
-			jailCount = 0;
+			player.setJailCount(0);
 		}
 
-		else if	(player.getInJail() == true && (jailCount < 2)) {
+		else if	(player.getInJail() == true && (player.getJailCount() < 2)) {
 			// The only thing you can't do while in jail is move and land on properties so we've just gotta skip the location update
-			jailCount++;
+			player.setJailCount(player.getJailCount() + 1);
 		}
 
-		else if	(player.getInJail() == true && (jailCount == 2) && (dice1 != dice2)) {
+		else if	(player.getInJail() == true && (player.getJailCount() == 2) && (dice1 != dice2)) {
 			player.setInJail(false);
 			// TODO: Check to make sure the boul isnt broke && make sure to check goojf and ask to see if they want to pay
 			player.changeMoney(-50);
-			jailCount = 0;
+			player.setJailCount(0);
 		}
 
 		if (dice1 == dice2 && speedingCount == 2) {
@@ -71,7 +73,11 @@ public class Game {
 			if (currentProperty.getBaseRent() != 0) {
 				updateGameState(player, currentProperty, totalDiceRoll);
 			} else {
-				if (currentProperty.getBoardPosition() == 30) {
+				if (currentProperty.getBoardPosition() == 4) {
+					player.changeMoney(-200);
+				} else if (currentProperty.getBoardPosition() == 38) {
+					player.changeMoney(-100);
+				} else if (currentProperty.getBoardPosition() == 30) {
 					player.setLocation(10);
 					player.setInJail(true);
 				} else if (currentProperty.getPropName().equals("Chance")) {
@@ -82,15 +88,16 @@ public class Game {
 					switch (cardName) {
 						case "Boardwalk":
 							player.setLocation(39);
+							currentProperty = board.getProperty(player.getLocation());
 							updateGameState(player, currentProperty, totalDiceRoll);
 							break;
 						case "Go":
 							player.setLocation(0);
-							updateGameState(player, currentProperty, totalDiceRoll);
 							player.changeMoney(200);
 							break;
 						case "Illinois":
 							player.setLocation(24);
+							currentProperty = board.getProperty(player.getLocation());
 							updateGameState(player, currentProperty, totalDiceRoll);
 							if (player.getLocation() < newPlayerLocation) {
 								player.changeMoney(200);
@@ -98,6 +105,7 @@ public class Game {
 							break;
 						case "StCharles":
 							player.setLocation(11);
+							currentProperty = board.getProperty(player.getLocation());
 							updateGameState(player, currentProperty, totalDiceRoll);
 							if (player.getLocation() < newPlayerLocation) {
 								player.changeMoney(200);
@@ -112,6 +120,7 @@ public class Game {
 								player.setLocation(5);
 								player.changeMoney(200);
 							}
+							currentProperty = board.getProperty(player.getLocation());
 							updateGameState(player, currentProperty, totalDiceRoll);
 							break;
 						case "Utility":
@@ -123,6 +132,7 @@ public class Game {
 								player.setLocation(12);
 								player.changeMoney(200);
 							}
+							currentProperty = board.getProperty(player.getLocation());
 							updateGameState(player, currentProperty, totalDiceRoll);		
 							break;
 						case "Get50":
@@ -156,6 +166,8 @@ public class Game {
 						case "Reading":
 							player.setLocation(5);
 							player.changeMoney(200);
+							currentProperty = board.getProperty(player.getLocation());
+							updateGameState(player, currentProperty, totalDiceRoll);
 							break;
 						case "PayEachPlayer50":
 							int paymentAmount = (players.size() - 1) * 50;
@@ -173,6 +185,7 @@ public class Game {
 							System.out.println("wtf");
 							break;
 					}
+					System.out.println(cardName);
 				} else if (currentProperty.getPropName().equals("Community Chest")) {
 					Cards card = deck.getCommunityChestDeck().get(0);
 					deck.getCommunityChestDeck().remove(0);
@@ -239,18 +252,19 @@ public class Game {
 							System.out.println("wtf");
 							break;
 					}
+					System.out.println(cardName);
 				}
 			}
-		// Print the dice roll and new location
-		System.out.println(player.getPlayerName() + " rolled the dice: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
-		System.out.println(player.getPlayerName() + " landed on " + currentProperty.getPropName());
-		}
+			// Print the dice roll and new location
+			System.out.println(player.getPlayerName() + " rolled the dice: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
+			System.out.println(player.getPlayerName() + " landed on " + currentProperty.getPropName());
 
-		if (dice1 == dice2) {
-			speedingCount++;
-			playTurn(player, speedingCount,0);
-		}
+			if (dice1 == dice2 && player.getInJail() == false) {
+				speedingCount++;
+				playTurn(player, speedingCount);
+			}
 
+		}
 	}
 
 	public static void main(String[] args) {
@@ -260,7 +274,8 @@ public class Game {
 		// Play a turn for each player
 		for (int i = 0; i < 50; i++) {
 			for (Player player : game.players) {
-				game.playTurn(player, 0, 0);
+				game.playTurn(player, 0);
+				System.out.println(player.getMoneyAmount());
 			}
 		}
 
@@ -339,41 +354,43 @@ public class Game {
 	public void buy(Player player, Board board) {
 		int currentPlayerLocation = player.getLocation();
 		Properties currentProperty = board.getProperty(currentPlayerLocation);
-		if (player.getMoneyAmount() >= currentProperty.getPrice()) {
-			if (currentProperty.getSetColor().equals("Railroad")) {
-				// add property to list of railroads, if you own more than 1, set isFullyOwned to true
-				// to maintain proper rent functionality
-				player.getOwnedRailroads().add(currentProperty);
-				for (Properties railroad : player.getOwnedRailroads()) {
-					if (player.getOwnedRailroads().size() >= 2) {
-						railroad.setIsFullyOwned(true);
+		if (currentProperty.getPrice() != 0) {
+			if (player.getMoneyAmount() >= currentProperty.getPrice()) {
+				if (currentProperty.getSetColor().equals("Railroad")) {
+					// add property to list of railroads, if you own more than 1, set isFullyOwned to true
+					// to maintain proper rent functionality
+					player.getOwnedRailroads().add(currentProperty);
+					for (Properties railroad : player.getOwnedRailroads()) {
+						if (player.getOwnedRailroads().size() >= 2) {
+							railroad.setIsFullyOwned(true);
+						}
+						railroad.setNumberOfHouses(player.getOwnedRailroads().size() - 1);
 					}
-					railroad.setNumberOfHouses(player.getOwnedRailroads().size() - 1);
-				}
-			} else if (currentProperty.getSetColor().equals("Utility")) {
-				// add property to list of utilities, if you own more than 1, set isFullyOwned to true
-				// to maintain proper rent functionality
-				player.getOwnedUtilities().add(currentProperty);
-				for (Properties utility : player.getOwnedUtilities()) {
-					if (player.getOwnedUtilities().size() == 2) {
-						utility.setIsFullyOwned(true);
+				} else if (currentProperty.getSetColor().equals("Utility")) {
+					// add property to list of utilities, if you own more than 1, set isFullyOwned to true
+					// to maintain proper rent functionality
+					player.getOwnedUtilities().add(currentProperty);
+					for (Properties utility : player.getOwnedUtilities()) {
+						if (player.getOwnedUtilities().size() == 2) {
+							utility.setIsFullyOwned(true);
+						}
+						utility.setNumberOfHouses(player.getOwnedUtilities().size() - 1);
 					}
-					utility.setNumberOfHouses(player.getOwnedUtilities().size() - 1);
-				}
-			} else {
-				// add property to list of properties, if you own all of that set, set isFullyOwned for
-				// all properties of that set color to true
-				player.getOwnedProperties().add(currentProperty);
-				if (hasMonopoly(player.getOwnedProperties(), currentProperty.getSetColor(), board)) {
-					for (Properties property : player.getOwnedProperties()) {
-						if (property.getSetColor().equals(currentProperty.getSetColor())) {
-							property.setIsFullyOwned(true);
+				} else {
+					// add property to list of properties, if you own all of that set, set isFullyOwned for
+					// all properties of that set color to true
+					player.getOwnedProperties().add(currentProperty);
+					if (hasMonopoly(player.getOwnedProperties(), currentProperty.getSetColor(), board)) {
+						for (Properties property : player.getOwnedProperties()) {
+							if (property.getSetColor().equals(currentProperty.getSetColor())) {
+								property.setIsFullyOwned(true);
+							}
 						}
 					}
 				}
+				currentProperty.setOwner(player);
+				player.changeMoney(-currentProperty.getPrice());
 			}
-			currentProperty.setOwner(player);
-			player.changeMoney(-currentProperty.getPrice());
 		}
 	}
 
@@ -397,9 +414,12 @@ public class Game {
 	}
 
 	public void updateGameState(Player player, Properties currentProperty, int totalDiceRoll) {
+
 		if (currentProperty.getOwner() == null) {
 			buy(player, board);
-			System.out.println(player.getPlayerName() + " bought " + currentProperty.getPropName());
+			if (currentProperty.getPrice() != 0) {
+				System.out.println(player.getPlayerName() + " bought " + currentProperty.getPropName());
+			}
 		} else {
 			if (currentProperty.getIsMortgaged() == false && currentProperty.getOwner() != player) {
 				if (currentProperty.getSetColor().equals("Utility")) {
@@ -418,6 +438,7 @@ public class Game {
 				if (player.getMoneyAmount() <= 0 && player.getOwnedProperties().isEmpty()
 					&& player.getOwnedRailroads().isEmpty() && player.getOwnedUtilities().isEmpty()) {
 						players.remove(player);
+						System.out.println(player + " is broke... :C");
 				}
 			}
 		}

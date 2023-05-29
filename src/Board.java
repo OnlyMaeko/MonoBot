@@ -77,7 +77,7 @@ The way to distinguish the railroads
 		board.add(new Properties("St. Charles Place", 10, 50, 150, 450, 625, 750, 70, 100, 100, "Pink", 140, 11, 0, false, null, false, false, 50, 50));
 
 		// Electric Company
-		board.add(new Properties("Electric Company", 4, 10, 0, 0, 0, 0, 0, 0, 0, "Utility", 0, 12, 0, false, null, false, false, 0, 0));
+		board.add(new Properties("Electric Company", 4, 10, 0, 0, 0, 0, 0, 0, 0, "Utility", 150, 12, 0, false, null, false, false, 0, 0));
 
 		// States Avenue
 		board.add(new Properties("States Avenue", 10, 50, 150, 450, 625, 750, 70, 100, 100, "Pink", 140, 13, 0, false, null, false, false, 50, 50));
@@ -125,7 +125,7 @@ The way to distinguish the railroads
 		board.add(new Properties("Ventnor Avenue", 22, 110, 330, 800, 975, 1150, 130, 150, 150, "Yellow", 260, 27, 0, false, null, false, false, 75, 75));
 
 		// Water Works
-		board.add(new Properties("Water Works", 4, 10, 0, 0, 0, 0, 0, 0, 0, "Utility", 0, 28, 0, false, null, false, false, 0, 0));
+		board.add(new Properties("Water Works", 4, 10, 0, 0, 0, 0, 0, 0, 0, "Utility", 150, 28, 0, false, null, false, false, 0, 0));
 
 		// Marvin Gardens
 		board.add(new Properties("Marvin Gardens", 24, 120, 360, 850, 1025, 1200, 140, 150, 150, "Yellow", 280, 29, 0, false, null, false, false, 75, 75));
@@ -146,7 +146,7 @@ The way to distinguish the railroads
 		board.add(new Properties("Pennsylvania Avenue", 28, 150, 450, 1000, 1200, 1400, 160, 200, 200, "Green", 320, 34, 0, false, null, false, false, 100, 100));
 
 		// Short Line
-		board.add(new Properties("Short Line", 0, 25, 50, 100, 200, 0, 100, 0, 0, "Railroad", 200, 35, 0, false, null, false, false, 0, 0));
+		board.add(new Properties("Short Line", 25, 50, 100, 200, 0, 0, 100, 0, 0, "Railroad", 200, 35, 0, false, null, false, false, 0, 0));
 
 		// Chance
 		board.add(new Properties("Chance", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 36, 0, false, null, false, false, 0, 0));
