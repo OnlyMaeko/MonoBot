@@ -6,38 +6,6 @@ public class Board {
 
 	public Board() {
 
-
-		// private String propName;
-		// private double baseRent;
-		// private double rentOne;
-		// private double rentTwo;
-		// private double rentThree;
-		// private double rentFour;
-		// private double rentHotel;
-		// private double mortgageValue;
-		// private double houseCost;
-		// private double hotelCost;
-		// private String setColor;
-		// private double price;
-		// private double boardPosition;
-		// private int numberOfHouses;
-		// private boolean isHotel;
-		// private String owner;
-		// private boolean isFullyOwned;
-		// private boolean isMortgaged;
-		// private double houseSellPrice;
-		// private double hotelSellPrice;
-
-
-/*
-
-For the railroad cards the rent 1,2,3, is the rent based on the number of railroads extra the owner Charles
-The way to distinguish the railroads
-
-
-
-*/
-
 		board = new ArrayList<>();
 
 		// GO

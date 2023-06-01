@@ -267,23 +267,37 @@ public class Game {
 		}
 	}
 
-	public static void main(String[] args) {
-		Game game = new Game();
-		game.startGame();
-		
-		// Play a turn for each player
-		for (int i = 0; i < 50; i++) {
-			for (Player player : game.players) {
-				game.playTurn(player, 0);
-				System.out.println(player.getMoneyAmount());
-			}
-		}
+	public ArrayList<Player> getPlayers() {
+        return players;
+    }
 
-		for (Player player : game.players) {
-			System.out.println(player.getMoneyAmount());
-		}
+    public void setPlayers(ArrayList<Player> players) {
+        this.players = players;
+    }
 
-	}
+    public Board getBoard() {
+        return board;
+    }
+
+    public void setBoard(Board board) {
+        this.board = board;
+    }
+
+    public Deck getDeck() {
+        return deck;
+    }
+
+    public void setDeck(Deck deck) {
+        this.deck = deck;
+    }
+
+    public boolean isGameOver() {
+        return isGameOver;
+    }
+
+    public void setGameOver(boolean gameOver) {
+        isGameOver = gameOver;
+    }
 
 	/*
 	 * HELPER METHODS
