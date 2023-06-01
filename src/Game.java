@@ -30,14 +30,16 @@ public class Game {
 		int dice2 = (int) (Math.random() * 6) + 1;
 		int totalDiceRoll = dice1 + dice2;
 		
-		if(player.getInJail() == true && (player.getGetOutOfJailFreeChance() == true || player.getGetOutOfJailFreeChest() == true)){
-			if(player.getGetOutOfJailFreeChance() == true){
+		if (player.getInJail() == true && (player.getGetOutOfJailFreeChance() == true || player.getGetOutOfJailFreeChest() == true)) {
+			if (player.getGetOutOfJailFreeChance() == true) {
 				player.setInJail(false);
 				player.setGetOutOfJailFreeChance(false);
+				deck.getChanceDeck().add(new Cards("GetOutOfJail"));
 			}
 			else {
 				player.setInJail(false);
 				player.setGetOutOfJailFreeChest(false);
+				deck.getCommunityChestDeck().add(new Cards("GetOutOfJail"));
 			}
 		}
 		if (player.getInJail() == true && (dice1 == dice2)) {
@@ -94,8 +96,10 @@ public class Game {
 				} else if (currentProperty.getPropName().equals("Chance")) {
 					Cards card = deck.getChanceDeck().get(0);
 					deck.getChanceDeck().remove(0);
-					deck.getChanceDeck().add(card);
 					String cardName = card.getCardName();
+					if (!(cardName.equals("GetOutOfJail"))) {
+						deck.getChanceDeck().add(card);
+					}
 					switch (cardName) {
 						case "Boardwalk":
 							player.setLocation(39);
@@ -150,16 +154,7 @@ public class Game {
 							player.changeMoney(50);
 							break;
 						case "GetOutOfJail":
-							int i = 0;
-							for (Player Player : players) {
-								if (Player.getGetOutOfJailFreeChance() == false) {
-									i++;
-								}
-							}
-							if(i == players.size()){
-								player.setGetOutOfJailFreeChance(true);
-							}
-							// TODO: DRAW NEW CARD
+							player.setGetOutOfJailFreeChance(true);
 							break;
 						case "GoBack3":
 							player.setLocation(player.getLocation() - 3);
@@ -226,17 +221,7 @@ public class Game {
 							player.changeMoney(50);
 							break;
 						case "GetOutOfJail":
-						
-						int i = 0;
-							for (Player Player : players) {
-								if (Player.getGetOutOfJailFreeChest() == false) {
-									i++;
-								}
-							}
-							if(i == players.size()){
-								player.setGetOutOfJailFreeChest(true);
-							}
-							// TODO: DRAW NEW CARD
+							player.setGetOutOfJailFreeChest(true);
 							break;
 						case "GoToJail":
 							player.setLocation(10);
