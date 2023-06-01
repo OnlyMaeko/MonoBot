@@ -150,8 +150,16 @@ public class Game {
 							player.changeMoney(50);
 							break;
 						case "GetOutOfJail":
-							
-							player.setGetOutOfJailFreeChance(true);
+							int i = 0;
+							for (Player Player : players) {
+								if (Player.getGetOutOfJailFreeChance() == false) {
+									i++;
+								}
+							}
+							if(i == players.size()){
+								player.setGetOutOfJailFreeChance(true);
+							}
+							// TODO: DRAW NEW CARD
 							break;
 						case "GoBack3":
 							player.setLocation(player.getLocation() - 3);
@@ -218,7 +226,17 @@ public class Game {
 							player.changeMoney(50);
 							break;
 						case "GetOutOfJail":
-							player.setGetOutOfJailFreeChest(true);
+						
+						int i = 0;
+							for (Player Player : players) {
+								if (Player.getGetOutOfJailFreeChest() == false) {
+									i++;
+								}
+							}
+							if(i == players.size()){
+								player.setGetOutOfJailFreeChest(true);
+							}
+							// TODO: DRAW NEW CARD
 							break;
 						case "GoToJail":
 							player.setLocation(10);
