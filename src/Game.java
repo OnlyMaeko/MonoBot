@@ -398,23 +398,17 @@ public class Game {
 
 	public void buyHouse(Player player, Board board) {
 
-		for(Properties property : player.getOwnedMonopolies()){
-			Properties currentProperty = property;
+		for (Properties property : player.getOwnedMonopolies()) {
+			if (player.getMoneyAmount() >= property.getHotelCost() + 100) {
+				boolean canBuyHouse = true;
+				if (property.getNumberOfHouses() < 4) {
 
-			if (player.getMoneyAmount() > currentProperty.getHouseCost() + 100 ) {
-				for (Properties proper : player.getOwnedMonopolies()) { 
-				
-				if (proper.getSetColor().equals(currentProperty.getSetColor()) && player.getMoneyAmount() > currentProperty.getHouseCost() + 100 && currentProperty.getIsHotel() == false) {
-				upgradeProperty(currentProperty);
-				player.changeMoney(-currentProperty.getHouseCost());
-					}
 				}
+				upgradeProperty(property);
+				player.changeMoney(-property.getHotelCost());
 			}
 		}
 
-		
-
-		
 	}
 
 	public void upgradeProperty(Properties property) {
