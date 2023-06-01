@@ -16,7 +16,8 @@ public class Game {
 		for (int i = 0; i < 2; i++) {
 			players.add(new Player("Player " + (i + 1), 0, 
 									new ArrayList<Properties>(), new ArrayList<Properties>(), 
-									new ArrayList<Properties>(), 1500, 0, false));
+									new ArrayList<Properties>(),new ArrayList<Properties>(),
+									 1500, 0, false));
 		}
 	}
 
@@ -384,6 +385,7 @@ public class Game {
 						for (Properties property : player.getOwnedProperties()) {
 							if (property.getSetColor().equals(currentProperty.getSetColor())) {
 								property.setIsFullyOwned(true);
+								player.getOwnedMonopolies().add(currentProperty);
 							}
 						}
 					}
@@ -392,6 +394,27 @@ public class Game {
 				player.changeMoney(-currentProperty.getPrice());
 			}
 		}
+	}
+
+	public void buyHouse(Player player, Board board) {
+
+		for(Properties property : player.getOwnedMonopolies()){
+			Properties currentProperty = property;
+
+			if (player.getMoneyAmount() > currentProperty.getHouseCost() + 100 ) {
+				for (Properties proper : player.getOwnedMonopolies()) { 
+				
+				if (proper.getSetColor().equals(currentProperty.getSetColor()) && player.getMoneyAmount() > currentProperty.getHouseCost() + 100 && currentProperty.getIsHotel() == false) {
+				upgradeProperty(currentProperty);
+				player.changeMoney(-currentProperty.getHouseCost());
+					}
+				}
+			}
+		}
+
+		
+
+		
 	}
 
 	public void upgradeProperty(Properties property) {
@@ -443,6 +466,7 @@ public class Game {
 			}
 		}
 	}
+
 
 
 
