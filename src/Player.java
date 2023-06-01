@@ -11,10 +11,13 @@ public class Player {
     private int moneyAmount;
     private int jailCount;
     private boolean inJail;
+    private boolean getOutOfJailFreeChance;
+    private boolean getOutOfJailFreeChest;
 
     public Player(String playerName, int locationOnBoard, ArrayList<Properties> ownedProperties,
                   ArrayList<Properties> ownedRailroads, ArrayList<Properties> ownedUtilities,
-                  ArrayList<Properties> ownedMonopolies, int moneyAmount, int jailCount, boolean inJail) {
+                  ArrayList<Properties> ownedMonopolies, int moneyAmount, int jailCount, boolean inJail,
+                  boolean getOutOfJailFreeChance, boolean getOutOfJailFreeChest) {
         this.playerName = playerName;
         this.location = locationOnBoard;
         this.ownedProperties = ownedProperties;
@@ -24,6 +27,8 @@ public class Player {
         this.moneyAmount = moneyAmount;
         this.jailCount = jailCount;
         this.inJail = inJail;
+        this.getOutOfJailFreeChance = getOutOfJailFreeChance;
+        this.getOutOfJailFreeChest = getOutOfJailFreeChest;
     }
 
     // Getters
@@ -63,6 +68,14 @@ public class Player {
         return inJail;
     }
 
+    public boolean getGetOutOfJailFreeChance() {
+        return getOutOfJailFreeChance;
+    }
+
+    public boolean getGetOutOfJailFreeChest() {
+        return getOutOfJailFreeChest;
+    }
+    
     // Setters
     public void setLocation(int newLocation) {
         this.location = newLocation;
@@ -102,5 +115,13 @@ public class Player {
 
     public void setInJail(boolean inJail) {
         this.inJail = inJail;
+    }
+
+    public void setGetOutOfJailFreeChance(boolean getOutOfJailFreeChance) {
+        this.getOutOfJailFreeChance = getOutOfJailFreeChance;
+    }
+
+    public void setGetOutOfJailFreeChest(boolean getOutOfJailFreeChest) {
+        this.getOutOfJailFreeChest = getOutOfJailFreeChest;
     }
 }

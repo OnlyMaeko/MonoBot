@@ -17,7 +17,7 @@ public class Game {
 			players.add(new Player("Player " + (i + 1), 0, 
 									new ArrayList<Properties>(), new ArrayList<Properties>(), 
 									new ArrayList<Properties>(),new ArrayList<Properties>(),
-									 1500, 0, false));
+									 1500, 0, false, false, false));
 		}
 	}
 
@@ -29,7 +29,17 @@ public class Game {
 		int dice1 = (int) (Math.random() * 6) + 1;
 		int dice2 = (int) (Math.random() * 6) + 1;
 		int totalDiceRoll = dice1 + dice2;
-
+		
+		if(player.getInJail() == true && (player.getGetOutOfJailFreeChance() == true || player.getGetOutOfJailFreeChest() == true)){
+			if(player.getGetOutOfJailFreeChance() == true){
+				player.setInJail(false);
+				player.setGetOutOfJailFreeChance(false);
+			}
+			else {
+				player.setInJail(false);
+				player.setGetOutOfJailFreeChest(false);
+			}
+		}
 		if (player.getInJail() == true && (dice1 == dice2)) {
 			player.setInJail(false);
 			player.setJailCount(0);
@@ -140,7 +150,8 @@ public class Game {
 							player.changeMoney(50);
 							break;
 						case "GetOutOfJail":
-							// TODO: Implement logic for acquiring a "Get Out of Jail Free" card
+							
+							player.setGetOutOfJailFreeChance(true);
 							break;
 						case "GoBack3":
 							player.setLocation(player.getLocation() - 3);
@@ -207,7 +218,7 @@ public class Game {
 							player.changeMoney(50);
 							break;
 						case "GetOutOfJail":
-							//GOOJF
+							player.setGetOutOfJailFreeChest(true);
 							break;
 						case "GoToJail":
 							player.setLocation(10);
