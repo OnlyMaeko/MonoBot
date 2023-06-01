@@ -397,18 +397,25 @@ public class Game {
 	}
 
 	public void buyHouse(Player player, Board board) {
-
 		for (Properties property : player.getOwnedMonopolies()) {
-			if (player.getMoneyAmount() >= property.getHotelCost() + 100) {
-				boolean canBuyHouse = true;
-				if (property.getNumberOfHouses() < 4) {
-
+			if (player.getMoneyAmount() >= property.getHouseCost() + 100) {
+				int minHouses = getMinHouses(player.getOwnedMonopolies(), property.getSetColor());
+				if (property.getNumberOfHouses() < 5 && property.getNumberOfHouses() <= minHouses && !property.getIsHotel()) {
+					upgradeProperty(property);
+					player.changeMoney(-property.getHouseCost());
 				}
-				upgradeProperty(property);
-				player.changeMoney(-property.getHotelCost());
 			}
 		}
-
+	}
+	
+	public int getMinHouses(ArrayList<Properties> monopolies, String setColor) {
+		int minHouses = Integer.MAX_VALUE;
+		for (Properties monopolizedProperty : monopolies) {
+			if (monopolizedProperty.getSetColor().equals(setColor)) {
+				minHouses = Math.min(minHouses, monopolizedProperty.getNumberOfHouses());
+			}
+		}
+		return minHouses;
 	}
 
 	public void upgradeProperty(Properties property) {
@@ -459,6 +466,11 @@ public class Game {
 				}
 			}
 		}
+
+		if (!(player.getOwnedMonopolies().isEmpty())) {
+			buyHouse(player, board);
+		}
+		
 	}
 
 
