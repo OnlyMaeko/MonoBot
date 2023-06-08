@@ -410,6 +410,104 @@ public class Game {
 		}
 	}
 
+	public void auction(Properties property) {
+		// TODO: Whole auction method (hard)
+	}
+
+	public void sell(Player player, Board board){
+		Properties property = player.getOwnedProperties().get(0);
+		if(property.getIsFullyOwned() == true){
+			for (Properties setProperty : player.getOwnedMonopolies()) {
+				if (property.getSetColor().equals(setProperty.getSetColor())) {
+					for(int i = setProperty.getNumberOfHouses(); i > 0; i--) {
+						downgradeProperty(setProperty);
+						player.changeMoney(setProperty.getHouseSellPrice());
+					}
+				}
+			}
+		}
+
+		player.getOwnedProperties().remove(0);
+		auction(property);
+		// TODO: Add changemoney from auction
+	}
+
+
+	public void downgradeProperty(Properties property) {
+		if(property.getIsHotel() == true) {
+			property.setIsHotel(false);
+		}
+		else if(property.getNumberOfHouses() > 0) {
+			property.setNumberOfHouses(property.getNumberOfHouses() - 1);
+		}
+	}
+
+	public void sellHouse(Properties property) {
+		// TODO: If you just want to sell a single house
+		// Needs a check to make sure the # of houses is in line with the rest of the set
+		if(property.getNumberOfHouses() > 0) {
+			property.setNumberOfHouses(property.getNumberOfHouses() - 1);
+			property.getOwner().changeMoney(property.getHouseSellPrice());
+		}
+		
+	}
+
+	public void sellHotel(Properties property) {
+		if(property.getIsHotel() == true) {
+			property.setIsHotel(false);
+			property.getOwner().changeMoney(property.getHotelSellPrice());
+		}
+	}
+
+	public void mortgage(Player player) {
+		int i = 0;
+		for(Properties property : player.getOwnedProperties()){
+			if(property.getIsMortgaged() == false) {
+				i++;
+			}
+			else {
+				break;
+			}
+		}
+		Properties property = player.getOwnedProperties().get(i);
+		if(property.getIsFullyOwned() == true){
+			for (Properties setProperty : player.getOwnedMonopolies()) {
+				if (property.getSetColor().equals(setProperty.getSetColor())) {
+					for(int j = setProperty.getNumberOfHouses(); j > 0; j--) {
+						downgradeProperty(setProperty);
+						player.changeMoney(setProperty.getHouseSellPrice());
+					}
+				}
+			}
+		}
+		mortgageHelper(property);
+	}
+
+	public void unmortgage(Player player) {
+		int i = 0;
+		for(Properties property : player.getOwnedProperties()){
+			if(property.getIsMortgaged() == true) {
+				i++;
+			}
+			else {
+				break;
+			}
+		}
+		Properties property = player.getOwnedProperties().get(i);
+		unmortgageHelper(property);
+		
+	}
+
+	public void mortgageHelper(Properties property){
+		property.setIsMortgaged(true);
+		property.getOwner().changeMoney(property.getPrice()/2);
+	}
+
+	public void unmortgageHelper(Properties property){
+		property.setIsMortgaged(false);
+		property.getOwner().changeMoney(-((property.getPrice()/2) + property.getPrice()/10));
+	}
+
 	public void buyHouse(Player player, Board board) {
 		for (Properties property : player.getOwnedMonopolies()) {
 			if (player.getMoneyAmount() >= property.getHouseCost() + 100) {
