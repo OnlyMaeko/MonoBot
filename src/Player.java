@@ -107,6 +107,11 @@ public class Player {
 
     public void changeMoney(int money) {
         this.moneyAmount += money;
+        if(this.moneyAmount < 0) {
+            // TODO: lose check & sell
+
+            
+        }
     }
 
     public void setJailCount(int jailCount) {

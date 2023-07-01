@@ -54,7 +54,6 @@ public class Game {
 
 		else if	(player.getInJail() == true && (player.getJailCount() == 2) && (dice1 != dice2)) {
 			player.setInJail(false);
-			// TODO: Check to make sure the boul isnt broke && make sure to check goojf and ask to see if they want to pay
 			player.changeMoney(-50);
 			player.setJailCount(0);
 		}
@@ -80,8 +79,6 @@ public class Game {
 
 			// Perform actions based on the new location
 			Properties currentProperty = board.getProperty(newPlayerLocation);
-
-			// TODO: Implement the logic for the player's actions based on the current property
 
 			if (currentProperty.getBaseRent() != 0) {
 				updateGameState(player, currentProperty, totalDiceRoll);
@@ -421,7 +418,6 @@ public class Game {
 				if (property.getSetColor().equals(setProperty.getSetColor())) {
 					for(int i = setProperty.getNumberOfHouses(); i > 0; i--) {
 						downgradeProperty(setProperty);
-						player.changeMoney(setProperty.getHouseSellPrice());
 					}
 				}
 			}
@@ -436,28 +432,14 @@ public class Game {
 	public void downgradeProperty(Properties property) {
 		if(property.getIsHotel() == true) {
 			property.setIsHotel(false);
+			property.getOwner().changeMoney(property.getHouseSellPrice());
 		}
 		else if(property.getNumberOfHouses() > 0) {
 			property.setNumberOfHouses(property.getNumberOfHouses() - 1);
-		}
-	}
-
-	public void sellHouse(Properties property) {
-		// TODO: If you just want to sell a single house
-		// Needs a check to make sure the # of houses is in line with the rest of the set
-		if(property.getNumberOfHouses() > 0) {
-			property.setNumberOfHouses(property.getNumberOfHouses() - 1);
 			property.getOwner().changeMoney(property.getHouseSellPrice());
 		}
-		
 	}
 
-	public void sellHotel(Properties property) {
-		if(property.getIsHotel() == true) {
-			property.setIsHotel(false);
-			property.getOwner().changeMoney(property.getHotelSellPrice());
-		}
-	}
 
 	public void mortgage(Player player) {
 		int i = 0;
