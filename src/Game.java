@@ -50,6 +50,7 @@ public class Game {
 		else if	(player.getInJail() == true && (player.getJailCount() < 2)) {
 			// The only thing you can't do while in jail is move and land on properties so we've just gotta skip the location update
 			player.setJailCount(player.getJailCount() + 1);
+			// TODO: Player can decide to pay to get out of jail but not move until next turn, decision making related thing.
 		}
 
 		else if	(player.getInJail() == true && (player.getJailCount() == 2) && (dice1 != dice2)) {
@@ -271,11 +272,12 @@ public class Game {
 			System.out.println(player.getPlayerName() + " rolled the dice: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
 			System.out.println(player.getPlayerName() + " landed on " + currentProperty.getPropName());
 
+			updatePlayers();
+
 			if (dice1 == dice2 && player.getInJail() == false) {
 				speedingCount++;
 				playTurn(player, speedingCount);
 			}
-
 		}
 	}
 
@@ -553,7 +555,6 @@ public class Game {
 				} else {
 					rent(player, currentProperty.getOwner(), board);
 				}
-				
 			}
 		}
 
@@ -563,9 +564,14 @@ public class Game {
 		
 	}
 
-
-
-
-
+	public void updatePlayers() {
+		for (int i = 0; i < players.size(); i++) {
+			Player player = players.get(i);
+			if (player.getMoneyAmount() < 0) {
+				players.remove(player);
+				System.out.println(player + " is broke... :C");
+			}
+		}
+	}
 
 }
