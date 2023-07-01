@@ -110,8 +110,14 @@ public class Player {
         if(this.moneyAmount < 0) {
             // TODO: lose check & sell
 
-            
-        }
+            if (player.getMoneyAmount() <= 0 && player.getOwnedProperties().isEmpty()
+					&& player.getOwnedRailroads().isEmpty() && player.getOwnedUtilities().isEmpty()) {
+						players.remove(player);
+						System.out.println(player + " is broke... :C");
+				}
+
+        
+            }
     }
 
     public void setJailCount(int jailCount) {

@@ -553,11 +553,7 @@ public class Game {
 				} else {
 					rent(player, currentProperty.getOwner(), board);
 				}
-				if (player.getMoneyAmount() <= 0 && player.getOwnedProperties().isEmpty()
-					&& player.getOwnedRailroads().isEmpty() && player.getOwnedUtilities().isEmpty()) {
-						players.remove(player);
-						System.out.println(player + " is broke... :C");
-				}
+				
 			}
 		}
 
