@@ -410,10 +410,30 @@ public class Game {
 	}
 
 	public void auction(Properties property) {
-		// TODO: Whole auction method (hard)
+		
+		for (int i = 0; i < players.size(); i++) {
+			
+			ArrayList<Player> auctionList = new ArrayList<Player>();
+			auctionList = players;
+			
+			Player player = auctionList.get(i);
+			if (player.getMoneyAmount() < 0) {
+			
+			// TODO: Create formula for max bid
+			// TODO: Iterate through auctionList to find this maxValue
+			// TODO: Don't do a nested for loop, 2 separate ones: 1 for initialization and 1 for bidding
+			// TODO: Bids go up by 5/10 and start at min price of 10
+			// TODO: When a player can't afford the max bid they are removed from the arraylist
+			// TODO: changeMoney and set owner as well as adding the property to the correct list
+			// TODO: Add a model for # of properties for owned in the set to check/ # of railroads / utils
+			
+			}
+		}
+
 	}
 
 	public void sell(Player player, Board board){
+		// TODO: Add sell functionality for railroads and utils
 		Properties property = player.getOwnedProperties().get(0);
 		if(property.getIsFullyOwned() == true){
 			for (Properties setProperty : player.getOwnedMonopolies()) {
