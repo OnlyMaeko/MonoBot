@@ -438,20 +438,31 @@ public class Game {
 	}
 
 	public void sell(Player player, Board board){
-		// TODO: Add sell functionality for railroads and utils
-		Properties property = player.getOwnedProperties().get(0);
-		if(property.getIsFullyOwned() == true){
-			for (Properties setProperty : player.getOwnedMonopolies()) {
-				if (property.getSetColor().equals(setProperty.getSetColor())) {
-					for(int i = setProperty.getNumberOfHouses(); i > 0; i--) {
-						downgradeProperty(setProperty);
+		if (player.getOwnedUtilities().size() != 0) {
+			Properties property = player.getOwnedUtilities().get(0);
+			player.getOwnedUtilities().remove(0);
+			auction(property);
+		}
+		else if (player.getOwnedRailroads().size() != 0) {
+			Properties property = player.getOwnedRailroads().get(0);
+			player.getOwnedRailroads().remove(0);
+			auction(property);
+		}
+		else if (player.getOwnedProperties().size() != 0) {
+			Properties property = player.getOwnedProperties().get(0);
+			if (property.getIsFullyOwned() == true) {
+				for (Properties setProperty : player.getOwnedMonopolies()) {
+					if (property.getSetColor().equals(setProperty.getSetColor())) {
+						for(int i = setProperty.getNumberOfHouses(); i > 0; i--) {
+							downgradeProperty(setProperty);
+						}
+					
 					}
 				}
 			}
+			player.getOwnedProperties().remove(0);
+			auction(property);
 		}
-
-		player.getOwnedProperties().remove(0);
-		auction(property);
 	}
 
 
@@ -592,8 +603,14 @@ public class Game {
 		for (int i = 0; i < players.size(); i++) {
 			Player player = players.get(i);
 			if (player.getMoneyAmount() < 0) {
-				players.remove(player);
-				System.out.println(player + " is broke... :C");
+				if (player.getOwnedUtilities().size() != 0 &&
+				player.getOwnedRailroads().size() != 0 &&
+				player.getOwnedProperties().size() != 0) { 
+					sell(player, board);
+				} else {
+					players.remove(player);
+					System.out.println(player + " is broke... :C");
+				}
 			}
 		}
 	}
