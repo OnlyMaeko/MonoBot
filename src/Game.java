@@ -5,13 +5,11 @@ public class Game {
 	private ArrayList<Player> players;
 	private Board board;
 	private Deck deck;
-	private boolean isGameOver;
 
 	public void startGame() {
 		board = new Board();
 		deck = new Deck();
 		players = new ArrayList<>();
-		isGameOver = false;
 
 		for (int i = 0; i < 2; i++) {
 			players.add(new Player("Player " + (i + 1), 0, 
@@ -272,8 +270,6 @@ public class Game {
 			System.out.println(player.getPlayerName() + " rolled the dice: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
 			System.out.println(player.getPlayerName() + " landed on " + currentProperty.getPropName());
 
-			updatePlayers();
-
 			if (dice1 == dice2 && player.getInJail() == false) {
 				speedingCount++;
 				playTurn(player, speedingCount);
@@ -286,7 +282,7 @@ public class Game {
 		game.startGame();
 		
 		// Play a turn for each player
-		for (int i = 0; i < 50; i++) {
+		while (game.players.size() > 1) {
 			for (Player player : game.players) {
 				game.playTurn(player, 0);
 				System.out.println(player.getMoneyAmount());
@@ -307,15 +303,18 @@ public class Game {
 
 		int currentPlayerLocation = player.getLocation();
 		Properties currentProperty = board.getProperty(currentPlayerLocation);
-		int money;
+		int money = 0;
 
 		if (currentProperty.getIsFullyOwned() == false) {
 
 			money = currentProperty.getBaseRent();
 			player.changeMoney(-money);
-			owner.changeMoney(money);
-
-			// owner.changeMoney(checkBroke(player, board));
+			int afterRent = checkBroke(player, board);
+			if (afterRent < 0) {
+				owner.changeMoney(money + afterRent);
+			} else {
+				owner.changeMoney(money);
+			}
 			System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 
 		} else {
@@ -325,45 +324,37 @@ public class Game {
 
 			if (houses == 0) {
 				money = currentProperty.getBaseRent() * 2;
-				player.changeMoney(-money);
-				owner.changeMoney(money);
-				System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 			}
 
 			if (hotel == true) {
 				money = currentProperty.getRentHotel();
-				player.changeMoney(-money);
-				owner.changeMoney(money);
-				System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 			}
 
 			if (houses == 1) {
 				money = currentProperty.getRentOne();
-				player.changeMoney(-money);
-				owner.changeMoney(money);
-				System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 			}
 
 			if (houses == 2) {
 				money = currentProperty.getRentTwo();
-				player.changeMoney(-money);
-				owner.changeMoney(money);
-				System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 			}
 
 			if (houses == 3) {
 				money = currentProperty.getRentThree();
-				player.changeMoney(-money);
-				owner.changeMoney(money);
-				System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 			}
 
 			if (houses == 4) {
 				money = currentProperty.getRentFour();
-				player.changeMoney(-money);
-				owner.changeMoney(money);
-				System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 			}
+
+			player.changeMoney(-money);
+			int afterRent = checkBroke(player, board);
+			if (afterRent < 0) {
+				owner.changeMoney(money + afterRent);
+			} else {
+				owner.changeMoney(money);
+			}
+			System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
+
 		}
 	}
 
@@ -421,6 +412,7 @@ public class Game {
 		}
 		else {
 			players.remove(player);
+			System.out.println(player + " is broke... :C");
 		}
 		checkBroke(player, board);
 		}
@@ -429,9 +421,10 @@ public class Game {
 
 	public int checkBrokeHelper(Player player) {
 		int unmortgagedProperties = 0;
-		for(int i = 0; i < player.getOwnedProperties().size(); i++)
-		if(player.getOwnedProperties().get(i).getIsMortgaged() != true){
-			unmortgagedProperties++;
+		for (int i = 0; i < player.getOwnedProperties().size(); i++) {
+			if (player.getOwnedProperties().get(i).getIsMortgaged() != true) {
+				unmortgagedProperties++;
+			}
 		} 
 		return unmortgagedProperties;
 	}
@@ -483,7 +476,6 @@ public class Game {
 						for(int i = setProperty.getNumberOfHouses(); i > 0; i--) {
 							downgradeProperty(setProperty);
 						}
-					
 					}
 				}
 			}
@@ -516,7 +508,7 @@ public class Game {
 			}
 		}
 		Properties property = player.getOwnedProperties().get(i);
-		if(property.getIsFullyOwned() == true){
+		if (property.getIsFullyOwned() == true) {
 			for (Properties setProperty : player.getOwnedMonopolies()) {
 				if (property.getSetColor().equals(setProperty.getSetColor())) {
 					for(int j = setProperty.getNumberOfHouses(); j > 0; j--) {
@@ -624,22 +616,6 @@ public class Game {
 			buyHouse(player, board);
 		}
 		
-	}
-
-	public void updatePlayers() {
-		for (int i = 0; i < players.size(); i++) {
-			Player player = players.get(i);
-			if (player.getMoneyAmount() < 0) {
-				if (player.getOwnedUtilities().size() != 0 &&
-				player.getOwnedRailroads().size() != 0 &&
-				player.getOwnedProperties().size() != 0) { 
-					sell(player, board);
-				} else {
-					players.remove(player);
-					System.out.println(player + " is broke... :C");
-				}
-			}
-		}
 	}
 
 }
