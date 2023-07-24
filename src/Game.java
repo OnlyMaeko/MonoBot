@@ -412,49 +412,28 @@ public class Game {
 	public void auction(Properties property) {
 		
 		ArrayList<Player> auctionList = new ArrayList<Player>(players);
-		int minValue = 10;
-		int maxValue = 0;
+
+		// for now, auctions will be won by the player with the most money
+
+		int highestBid = 0;
+		int secondHighestBid = 0;
 
 		for (int i = 0; i < players.size(); i++) {
 			Player player = auctionList.get(i);
-			int maxBid = player.getMoneyAmount() / 5;
-			player.setMaxBid(maxBid);
-		}
-			// TODO: Iterate through auctionList to find this maxValue
-			// TODO: Bids go up by 5/10 and start at min price of 10
-			// TODO: When a player can't afford the max bid they are removed from the arraylist
-
-    	ArrayList<Player> playersToRemove = new ArrayList<>();
-    	while (true) {
-
-        	for (Player player : auctionList) {
-            	if (player.getMaxBid() >= minValue && player.getMaxBid() > maxValue) {
-            	    maxValue = player.getMaxBid();
-            	} else {
-            	    playersToRemove.add(player);
-            	}
-        	}
-
-        	auctionList.removeAll(playersToRemove);
-        	playersToRemove.clear();
-
-        	if (auctionList.size() == 1 || maxValue >= property.getPrice()) {
-        	    break;
-        	}
-
-        	minValue += 5;
-    	}
-
-			// TODO: We can iterate or we can just add 1 to the second highest bid
-			
-			
-			int money = 0;
-			property.setPrice(money);
-			for (int i = 0; i < players.size(); i++){
-				if (players.get(i).getPlayerName().equals(auctionList.get(0).getPlayerName())) {
-					buy(players.get(i), board);
-				}
+			if (player.getMoneyAmount() / 5 > highestBid) {
+				secondHighestBid = highestBid;
+				highestBid = player.getMoneyAmount() / 5;
+			} else if (player.getMoneyAmount() / 5 > secondHighestBid && player.getMoneyAmount() / 5 != highestBid) {
+				secondHighestBid = player.getMoneyAmount() / 5;
 			}
+		}
+
+		property.setPrice(secondHighestBid + 1);
+		for (int i = 0; i < players.size(); i++){
+			if (players.get(i).getPlayerName().equals(auctionList.get(0).getPlayerName())) {
+				buy(players.get(i), board);
+			}
+		}
 		
 	}
 
