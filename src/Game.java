@@ -418,8 +418,8 @@ public class Game {
 		for (int i = 0; i < players.size(); i++) {
 			Player player = auctionList.get(i);
 			int maxBid = (player.getMoneyAmount()/5);
-			// TODO: Actual formula lol, or it's smtg we could let the AI do
-			// player.setMaxBid();
+			
+		
 		}
 			// TODO: Iterate through auctionList to find this maxValue
 			// TODO: Bids go up by 5/10 and start at min price of 10
