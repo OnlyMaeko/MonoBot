@@ -500,40 +500,38 @@ public class Game {
 	public void mortgage(Player player) {
 		int i = 0;
 		for(Properties property : player.getOwnedProperties()){
-			if(property.getIsMortgaged() == false) {
+			if(property.getIsMortgaged() == true) {
 				i++;
 			}
 			else {
-				break;
-			}
-		}
-		Properties property = player.getOwnedProperties().get(i);
-		if (property.getIsFullyOwned() == true) {
-			for (Properties setProperty : player.getOwnedMonopolies()) {
-				if (property.getSetColor().equals(setProperty.getSetColor())) {
-					for(int j = setProperty.getNumberOfHouses(); j > 0; j--) {
-						downgradeProperty(setProperty);
-						player.changeMoney(setProperty.getHouseSellPrice());
+				property = player.getOwnedProperties().get(i);
+				if (property.getIsFullyOwned() == true) {
+					for (Properties setProperty : player.getOwnedMonopolies()) {
+						if (property.getSetColor().equals(setProperty.getSetColor())) {
+							for(int j = setProperty.getNumberOfHouses(); j > 0; j--) {
+							downgradeProperty(setProperty);
+							player.changeMoney(setProperty.getHouseSellPrice());
 					}
 				}
 			}
 		}
 		mortgageHelper(property);
+			}
+		}
+		
 	}
 
 	public void unmortgage(Player player) {
 		int i = 0;
 		for(Properties property : player.getOwnedProperties()){
-			if(property.getIsMortgaged() == true) {
+			if(property.getIsMortgaged() == false) {
 				i++;
 			}
 			else {
-				break;
+				property = player.getOwnedProperties().get(i);
+				unmortgageHelper(property);
 			}
 		}
-		Properties property = player.getOwnedProperties().get(i);
-		unmortgageHelper(property);
-		
 	}
 
 	public void mortgageHelper(Properties property){
