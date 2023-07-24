@@ -314,6 +314,8 @@ public class Game {
 			money = currentProperty.getBaseRent();
 			player.changeMoney(-money);
 			owner.changeMoney(money);
+
+			// owner.changeMoney(checkBroke(player, board));
 			System.out.println(player.getPlayerName() + " paid " + currentProperty.getOwner().getPlayerName() + " $" + money);
 
 		} else {
@@ -407,6 +409,31 @@ public class Game {
 				player.changeMoney(-currentProperty.getPrice());
 			}
 		}
+	}
+
+	public int checkBroke(Player player, Board board) {
+		if(player.getMoneyAmount() < 0) {	
+		if(checkBrokeHelper(player) != 0) {
+			mortgage(player);
+		}	
+		else if(player.getOwnedProperties().size() > 0 || player.getOwnedRailroads().size() > 0 || player.getOwnedUtilities().size() > 0) {
+			sell(player, board);
+		}
+		else {
+			players.remove(player);
+		}
+		checkBroke(player, board);
+		}
+		return player.getMoneyAmount();
+	}
+
+	public int checkBrokeHelper(Player player) {
+		int unmortgagedProperties = 0;
+		for(int i = 0; i < player.getOwnedProperties().size(); i++)
+		if(player.getOwnedProperties().get(i).getIsMortgaged() != true){
+			unmortgagedProperties++;
+		} 
+		return unmortgagedProperties;
 	}
 
 	public void auction(Properties property) {
