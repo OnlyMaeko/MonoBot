@@ -282,15 +282,30 @@ public class Game {
 		game.startGame();
 		
 		// Play a turn for each player
-		while (game.players.size() > 1) {
-			for (Player player : game.players) {
-				game.playTurn(player, 0);
-				System.out.println(player.getMoneyAmount());
+		int i = 0;
+		int turns = 0;
+		while (game.players.size() > 1 && turns <= 1000) {
+			Player currPlayer = game.players.get(i);
+			game.playTurn(currPlayer, 0);
+			System.out.println(currPlayer.getMoneyAmount());
+			if (i >= game.players.size() - 1) {
+				i = 0;
+			} else {
+				i++;
 			}
+			turns++;
 		}
 
 		for (Player player : game.players) {
+			System.out.println(player.getPlayerName());
+			System.out.println("ended the game with: ");
 			System.out.println(player.getMoneyAmount());
+			System.out.println("This player owned: ");
+			for (int j = 0; j < player.getOwnedProperties().size(); j++) {
+				System.out.print(player.getOwnedProperties().get(j).getPropName());
+				System.out.print(", ");
+			}
+			System.out.println("");
 		}
 
 	}
@@ -311,7 +326,7 @@ public class Game {
 			player.changeMoney(-money);
 			int afterRent = checkBroke(player, board);
 			if (afterRent < 0) {
-				owner.changeMoney(money + afterRent);
+				owner.changeMoney(money - afterRent);
 			} else {
 				owner.changeMoney(money);
 			}
@@ -349,7 +364,7 @@ public class Game {
 			player.changeMoney(-money);
 			int afterRent = checkBroke(player, board);
 			if (afterRent < 0) {
-				owner.changeMoney(money + afterRent);
+				owner.changeMoney(money - afterRent);
 			} else {
 				owner.changeMoney(money);
 			}
@@ -403,18 +418,19 @@ public class Game {
 	}
 
 	public int checkBroke(Player player, Board board) {
-		if(player.getMoneyAmount() < 0) {	
-		if(checkBrokeHelper(player) != 0) {
-			mortgage(player);
-		}	
-		else if(player.getOwnedProperties().size() > 0 || player.getOwnedRailroads().size() > 0 || player.getOwnedUtilities().size() > 0) {
-			sell(player, board);
-		}
-		else {
-			players.remove(player);
-			System.out.println(player + " is broke... :C");
-		}
-		checkBroke(player, board);
+		if (player.getMoneyAmount() < 0) {	
+			if (checkBrokeHelper(player) != 0) {
+				mortgage(player);
+			}	
+			else if(player.getOwnedProperties().size() > 0 || player.getOwnedRailroads().size() > 0 || player.getOwnedUtilities().size() > 0) {
+				sell(player, board);
+			}
+			else {
+				player.setMoneyAmount(-player.getMoneyAmount());
+				players.remove(player);
+				System.out.println(player.getPlayerName() + " is broke... :C");
+			}
+			checkBroke(player, board);
 		}
 		return player.getMoneyAmount();
 	}
@@ -461,11 +477,13 @@ public class Game {
 		if (player.getOwnedUtilities().size() != 0) {
 			Properties property = player.getOwnedUtilities().get(0);
 			player.getOwnedUtilities().remove(0);
+			System.out.println(property.getPropName() + " WAS SOLD!!!!!!!!");
 			auction(property);
 		}
 		else if (player.getOwnedRailroads().size() != 0) {
 			Properties property = player.getOwnedRailroads().get(0);
 			player.getOwnedRailroads().remove(0);
+			System.out.println(property.getPropName() + " WAS SOLD!!!!!!!!");
 			auction(property);
 		}
 		else if (player.getOwnedProperties().size() != 0) {
@@ -480,6 +498,7 @@ public class Game {
 				}
 			}
 			player.getOwnedProperties().remove(0);
+			System.out.println(property.getPropName() + " WAS SOLD!!!!!!!!");
 			auction(property);
 		}
 	}
@@ -499,8 +518,8 @@ public class Game {
 
 	public void mortgage(Player player) {
 		int i = 0;
-		for(Properties property : player.getOwnedProperties()){
-			if(property.getIsMortgaged() == true) {
+		for (Properties property : player.getOwnedProperties()) {
+			if (property.getIsMortgaged() == true) {
 				i++;
 			}
 			else {
@@ -508,17 +527,16 @@ public class Game {
 				if (property.getIsFullyOwned() == true) {
 					for (Properties setProperty : player.getOwnedMonopolies()) {
 						if (property.getSetColor().equals(setProperty.getSetColor())) {
-							for(int j = setProperty.getNumberOfHouses(); j > 0; j--) {
-							downgradeProperty(setProperty);
-							player.changeMoney(setProperty.getHouseSellPrice());
+							for (int j = setProperty.getNumberOfHouses(); j > 0; j--) {
+								downgradeProperty(setProperty);
+								player.changeMoney(setProperty.getHouseSellPrice());
+							}
+						}
 					}
 				}
+				mortgageHelper(property);
 			}
 		}
-		mortgageHelper(property);
-			}
-		}
-		
 	}
 
 	public void unmortgage(Player player) {
@@ -536,11 +554,13 @@ public class Game {
 
 	public void mortgageHelper(Properties property){
 		property.setIsMortgaged(true);
+		System.out.println(property.getPropName() + " WAS MORTGAGED!!!!!!!!");
 		property.getOwner().changeMoney(property.getPrice()/2);
 	}
 
 	public void unmortgageHelper(Properties property){
 		property.setIsMortgaged(false);
+		System.out.println(property.getPropName() + " WAS UNMORTGAGED!!!!!!!!");
 		property.getOwner().changeMoney(-((property.getPrice()/2) + property.getPrice()/10));
 	}
 
@@ -612,6 +632,10 @@ public class Game {
 
 		if (!(player.getOwnedMonopolies().isEmpty())) {
 			buyHouse(player, board);
+		}
+
+		if (player.getMoneyAmount() > 220) {
+			unmortgage(player);
 		}
 		
 	}
