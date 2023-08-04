@@ -28,34 +28,8 @@ public class Game {
 		int dice2 = (int) (Math.random() * 6) + 1;
 		int totalDiceRoll = dice1 + dice2;
 		
-		if (player.getInJail() == true && (player.getGetOutOfJailFreeChance() == true || player.getGetOutOfJailFreeChest() == true)) {
-			if (player.getGetOutOfJailFreeChance() == true) {
-				player.setInJail(false);
-				player.setGetOutOfJailFreeChance(false);
-				deck.getChanceDeck().add(new Cards("GetOutOfJail"));
-			}
-			else {
-				player.setInJail(false);
-				player.setGetOutOfJailFreeChest(false);
-				deck.getCommunityChestDeck().add(new Cards("GetOutOfJail"));
-			}
-		}
-		if (player.getInJail() == true && (dice1 == dice2)) {
-			player.setInJail(false);
-			player.setJailCount(0);
-		}
-
-		else if	(player.getInJail() == true && (player.getJailCount() < 2)) {
-			// The only thing you can't do while in jail is move and land on properties so we've just gotta skip the location update
-			player.setJailCount(player.getJailCount() + 1);
-			// TODO: Player can decide to pay to get out of jail but not move until next turn, decision making related thing.
-		}
-
-		else if	(player.getInJail() == true && (player.getJailCount() == 2) && (dice1 != dice2)) {
-			player.setInJail(false);
-			player.changeMoney(-50);
-			player.setJailCount(0);
-		}
+		// Checks if the player is in jail - moved into a method for readability
+		jailChecker(player, dice1, dice2);
 
 		if (dice1 == dice2 && speedingCount == 2) {
 			player.setLocation(10);
@@ -69,6 +43,8 @@ public class Game {
 			int newPlayerLocation = (currentPlayerLocation + totalDiceRoll) % 40;
 			
 			// If you've crossed Go it means it went under 0 so you gain $200
+			// TODO: Edge case: if the player rolled double 1's and draws the 
+			// go back 3 spaces card they will collect 200
 			if (newPlayerLocation < currentPlayerLocation) {
 				player.changeMoney(200);
 			}
@@ -603,6 +579,37 @@ public class Game {
 			}
 		}
 		return count == board.getPropertySetSize(setColor);
+	}
+
+	public void jailChecker(Player player, int dice1, int dice2) {
+			if (player.getInJail() == true && (player.getGetOutOfJailFreeChance() == true || player.getGetOutOfJailFreeChest() == true)) {
+			if (player.getGetOutOfJailFreeChance() == true) {
+				player.setInJail(false);
+				player.setGetOutOfJailFreeChance(false);
+				deck.getChanceDeck().add(new Cards("GetOutOfJail"));
+			}
+			else {
+				player.setInJail(false);
+				player.setGetOutOfJailFreeChest(false);
+				deck.getCommunityChestDeck().add(new Cards("GetOutOfJail"));
+			}
+		}
+		if (player.getInJail() == true && (dice1 == dice2)) {
+			player.setInJail(false);
+			player.setJailCount(0);
+		}
+
+		else if	(player.getInJail() == true && (player.getJailCount() < 2)) {
+			// The only thing you can't do while in jail is move and land on properties so we've just gotta skip the location update
+			player.setJailCount(player.getJailCount() + 1);
+			// TODO: Player can decide to pay to get out of jail but not move until next turn, decision making related thing.
+		}
+
+		else if	(player.getInJail() == true && (player.getJailCount() == 2) && (dice1 != dice2)) {
+			player.setInJail(false);
+			player.changeMoney(-50);
+			player.setJailCount(0);
+		}
 	}
 
 	public void updateGameState(Player player, Properties currentProperty, int totalDiceRoll) {
