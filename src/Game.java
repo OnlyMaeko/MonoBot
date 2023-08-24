@@ -163,6 +163,7 @@ public class Game {
 								if (otherPlayer != player) {
 									otherPlayer.changeMoney(50);
 								}
+								checkBroke(player, board);
 							}
 							break;
 						case "Get150":
@@ -211,6 +212,7 @@ public class Game {
 							for (Player otherPlayer : players) {
 								if (otherPlayer != player) {
 									otherPlayer.changeMoney(-10);
+									checkBroke(otherPlayer, board);
 								}
 							}
 							break;
@@ -242,6 +244,9 @@ public class Game {
 					System.out.println(cardName);
 				}
 			}
+
+			checkBroke(player, board);
+
 			// Print the dice roll and new location
 			System.out.println(player.getPlayerName() + " rolled the dice: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
 			System.out.println(player.getPlayerName() + " landed on " + currentProperty.getPropName());
@@ -302,7 +307,7 @@ public class Game {
 			player.changeMoney(-money);
 			int afterRent = checkBroke(player, board);
 			if (afterRent < 0) {
-				owner.changeMoney(money - afterRent);
+				owner.changeMoney(money + afterRent);
 			} else {
 				owner.changeMoney(money);
 			}
@@ -340,7 +345,7 @@ public class Game {
 			player.changeMoney(-money);
 			int afterRent = checkBroke(player, board);
 			if (afterRent < 0) {
-				owner.changeMoney(money - afterRent);
+				owner.changeMoney(money + afterRent);
 			} else {
 				owner.changeMoney(money);
 			}
@@ -397,16 +402,18 @@ public class Game {
 		if (player.getMoneyAmount() < 0) {	
 			if (checkBrokeHelper(player) != 0) {
 				mortgage(player);
+				checkBroke(player, board);
 			}	
 			else if(player.getOwnedProperties().size() > 0 || player.getOwnedRailroads().size() > 0 || player.getOwnedUtilities().size() > 0) {
 				sell(player, board);
+				checkBroke(player, board);
 			}
 			else {
-				player.setMoneyAmount(-player.getMoneyAmount());
+				int temp = player.getMoneyAmount();
 				players.remove(player);
 				System.out.println(player.getPlayerName() + " is broke... :C");
+				return temp;
 			}
-			checkBroke(player, board);
 		}
 		return player.getMoneyAmount();
 	}
@@ -466,6 +473,7 @@ public class Game {
 			Properties property = player.getOwnedProperties().get(0);
 			if (property.getIsFullyOwned() == true) {
 				for (Properties setProperty : player.getOwnedMonopolies()) {
+					// TODO: Property set color stuff (getName)
 					if (property.getSetColor().equals(setProperty.getSetColor())) {
 						for(int i = setProperty.getNumberOfHouses(); i > 0; i--) {
 							downgradeProperty(setProperty);
@@ -473,6 +481,7 @@ public class Game {
 					}
 				}
 			}
+			// TODO: If part of a monopoly is sold, make sure that is in line with player.getOwnedMonopolies
 			player.getOwnedProperties().remove(0);
 			System.out.println(property.getPropName() + " WAS SOLD!!!!!!!!");
 			auction(property);
@@ -481,11 +490,11 @@ public class Game {
 
 
 	public void downgradeProperty(Properties property) {
-		if(property.getIsHotel() == true) {
+		if (property.getIsHotel() == true) {
 			property.setIsHotel(false);
 			property.getOwner().changeMoney(property.getHouseSellPrice());
 		}
-		else if(property.getNumberOfHouses() > 0) {
+		else if (property.getNumberOfHouses() > 0) {
 			property.setNumberOfHouses(property.getNumberOfHouses() - 1);
 			property.getOwner().changeMoney(property.getHouseSellPrice());
 		}
@@ -493,6 +502,7 @@ public class Game {
 
 
 	public void mortgage(Player player) {
+		// TODO: Mortgaging functionality to utilites and railroads
 		int i = 0;
 		for (Properties property : player.getOwnedProperties()) {
 			if (property.getIsMortgaged() == true) {
@@ -502,6 +512,7 @@ public class Game {
 				property = player.getOwnedProperties().get(i);
 				if (property.getIsFullyOwned() == true) {
 					for (Properties setProperty : player.getOwnedMonopolies()) {
+						// TODO: Property set color stuff (getName)
 						if (property.getSetColor().equals(setProperty.getSetColor())) {
 							for (int j = setProperty.getNumberOfHouses(); j > 0; j--) {
 								downgradeProperty(setProperty);
@@ -511,6 +522,7 @@ public class Game {
 					}
 				}
 				mortgageHelper(property);
+				break;
 			}
 		}
 	}
