@@ -395,6 +395,9 @@ public class Game {
 				currentProperty.setOwner(player);
 				player.changeMoney(-currentProperty.getPrice());
 			}
+			else {
+				auction(currentProperty);
+			}
 		}
 	}
 
@@ -473,15 +476,15 @@ public class Game {
 			Properties property = player.getOwnedProperties().get(0);
 			if (property.getIsFullyOwned() == true) {
 				for (Properties setProperty : player.getOwnedMonopolies()) {
-					// TODO: Property set color stuff (getName)
 					if (property.getSetColor().equals(setProperty.getSetColor())) {
 						for(int i = setProperty.getNumberOfHouses(); i > 0; i--) {
 							downgradeProperty(setProperty);
+							setProperty.setIsFullyOwned(false);
+
 						}
 					}
 				}
 			}
-			// TODO: If part of a monopoly is sold, make sure that is in line with player.getOwnedMonopolies
 			player.getOwnedProperties().remove(0);
 			System.out.println(property.getPropName() + " WAS SOLD!!!!!!!!");
 			auction(property);
@@ -498,6 +501,7 @@ public class Game {
 			property.setNumberOfHouses(property.getNumberOfHouses() - 1);
 			property.getOwner().changeMoney(property.getHouseSellPrice());
 		}
+		System.out.println(property.getPropName() + " was downgraded!!!");
 	}
 
 
@@ -512,7 +516,6 @@ public class Game {
 				property = player.getOwnedProperties().get(i);
 				if (property.getIsFullyOwned() == true) {
 					for (Properties setProperty : player.getOwnedMonopolies()) {
-						// TODO: Property set color stuff (getName)
 						if (property.getSetColor().equals(setProperty.getSetColor())) {
 							for (int j = setProperty.getNumberOfHouses(); j > 0; j--) {
 								downgradeProperty(setProperty);
@@ -559,6 +562,7 @@ public class Game {
 				if (property.getNumberOfHouses() < 5 && property.getNumberOfHouses() <= minHouses && !property.getIsHotel()) {
 					upgradeProperty(property);
 					player.changeMoney(-property.getHouseCost());
+					System.out.println(player.getPlayerName() + " bought a house (or hotel) on " + property.getPropName() + "!!!");
 				}
 			}
 		}
