@@ -285,10 +285,11 @@ public class Game {
 			for (int j = 0; j < player.getOwnedProperties().size(); j++) {
 				System.out.print(player.getOwnedProperties().get(j).getPropName());
 				System.out.print(", ");
+				System.out.print(player.getOwnedProperties().get(j).getNumberOfHouses());
+				System.out.print(", ");
 			}
 			System.out.println("");
 		}
-
 	}
 
 	/*
@@ -452,8 +453,8 @@ public class Game {
 
 		property.setPrice(secondHighestBid + 1);
 		for (int i = 0; i < players.size(); i++){
-			if (players.get(i).getPlayerName().equals(auctionList.get(0).getPlayerName())) {
-				buy(players.get(i), board);
+			if (players.get(i).getPlayerName().equals(auctionList.get(0).getPlayerName()) && players.get(i).getMoneyAmount() >= secondHighestBid+1) {
+					buy(players.get(i), board);
 			}
 		}
 		
@@ -475,6 +476,7 @@ public class Game {
 		else if (player.getOwnedProperties().size() != 0) {
 			Properties property = player.getOwnedProperties().get(0);
 			if (property.getIsFullyOwned() == true) {
+				// TODO: Rethink if we need this functionality
 				for (Properties setProperty : player.getOwnedMonopolies()) {
 					if (property.getSetColor().equals(setProperty.getSetColor())) {
 						for(int i = setProperty.getNumberOfHouses(); i > 0; i--) {
@@ -539,6 +541,7 @@ public class Game {
 			else {
 				property = player.getOwnedProperties().get(i);
 				unmortgageHelper(property);
+				break;
 			}
 		}
 	}
@@ -559,10 +562,10 @@ public class Game {
 		for (Properties property : player.getOwnedMonopolies()) {
 			if (player.getMoneyAmount() >= property.getHouseCost() + 100) {
 				int minHouses = getMinHouses(player.getOwnedMonopolies(), property.getSetColor());
-				if (property.getNumberOfHouses() < 5 && property.getNumberOfHouses() <= minHouses && !property.getIsHotel()) {
+				if (property.getNumberOfHouses() <= 4 && property.getNumberOfHouses() <= minHouses && !property.getIsHotel() && property.getIsMortgaged() == false) {
 					upgradeProperty(property);
 					player.changeMoney(-property.getHouseCost());
-					System.out.println(player.getPlayerName() + " bought a house (or hotel) on " + property.getPropName() + "!!!");
+					System.out.println(player.getPlayerName() + " bought a house (or hotel) on " + property.getPropName() + " and money amount is " + player.getMoneyAmount() + "!!!");
 				}
 			}
 		}
@@ -581,9 +584,12 @@ public class Game {
 	public void upgradeProperty(Properties property) {
 		int numHouses = property.getNumberOfHouses();
 		if (numHouses < 4) {
-			property.setNumberOfHouses(numHouses++);
+			numHouses++;
+			property.setNumberOfHouses(numHouses);
 		} else {
-			property.setIsHotel(true);
+			if(property.getIsHotel() == false){
+				property.setIsHotel(true);
+			}
 		}
 	}
 
@@ -652,14 +658,16 @@ public class Game {
 				}
 			}
 		}
+		
+		if (player.getMoneyAmount() > 220) {
+			unmortgage(player);
+		}
 
 		if (!(player.getOwnedMonopolies().isEmpty())) {
 			buyHouse(player, board);
 		}
 
-		if (player.getMoneyAmount() > 220) {
-			unmortgage(player);
-		}
+		
 		
 	}
 
