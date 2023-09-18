@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Game {
 
@@ -296,6 +297,41 @@ public class Game {
 	 * HELPER METHODS
 	 */
 
+	public void checkState(ArrayList<Player> players) {
+		
+		// Using Boolean vs boolean takes up way more memory
+		ArrayList<Boolean> checks = new ArrayList<Boolean>();
+		ArrayList<Properties> checkProp = new ArrayList<Properties>();
+		for(Player player : players){	
+			// Checks state requirement - that the player has positive money
+			if(player.getMoneyAmount() < 0){
+				checks.add(false);
+				}
+				//TODO: Input other game state checks
+
+				// Okay this is some bullshit but its not as bad as it looks
+				// Find a way to check the arraylist to see if it contains a duplicate because that doesn't use a for loop
+				checkProp.clear();
+				for (Properties Property : player.getOwnedMonopolies()) {
+					// The below yellow flag is some bullshit and I think its bc it's a reference but this is the part that doesn't quite work
+					if (Arrays.asList(checkProp).contains(Property) == true){
+						checkProp.set(0, null);
+					}
+					else{
+						checkProp.add(Property);
+					}
+				}
+
+				if(Arrays.asList(checkProp).contains(null) == true)
+				{
+					checks.add(false);
+				}
+		}
+			if(checks.contains(false) == true){
+				System.out.println("***THERE WAS AN ERROR ON THIS TURN***");
+			}
+	}
+
 	public void rent(Player player, Player owner, Board board) {
 
 		int currentPlayerLocation = player.getLocation();
@@ -414,6 +450,8 @@ public class Game {
 			}
 			else {
 				int temp = player.getMoneyAmount();
+				// TODO: CHECK STATE IS HERE!!!
+				checkState(players);
 				players.remove(player);
 				System.out.println(player.getPlayerName() + " is broke... :C");
 				return temp;
@@ -666,7 +704,8 @@ public class Game {
 		if (!(player.getOwnedMonopolies().isEmpty())) {
 			buyHouse(player, board);
 		}
-
+			// TODO: CHECK STATE IS HERE!!!
+			checkState(players);
 		
 		
 	}
