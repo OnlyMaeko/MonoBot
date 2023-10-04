@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Game {
 
@@ -298,8 +297,16 @@ public class Game {
 	 */
 
 	public void checkState(ArrayList<Player> players) {
-		
-		// Using Boolean vs boolean takes up way more memory
+		//TODO: Input other game state checks (houses arent above 4, rent for a hotel is what it is supposed to be, etc)
+
+		/*
+		TLDR: This method checks the things we know to be true in the state of the game to see when and where things are going wrong, it is run after every turn
+		As of now there are two parts to it, the first makes sure players don't randomly have negative money, the second is to make sure there aren't duplicate properties
+		If either of these two things are true a boolean will be set to false in an arraylist called checks and then there will be an error output at the turn in question
+		I have created a mirror arraylist to work with to make sure that we don't edit the in game ones
+		*/ 
+
+		// Using Boolean vs boolean takes up more memory - this is hard because we kind of need these to be objects, idk if we can find a workaround
 		ArrayList<Boolean> checks = new ArrayList<Boolean>();
 		ArrayList<Properties> checkProp = new ArrayList<Properties>();
 		for(Player player : players){	
@@ -307,28 +314,21 @@ public class Game {
 			if(player.getMoneyAmount() < 0){
 				checks.add(false);
 				}
-				//TODO: Input other game state checks
-
-				// Okay this is some bullshit but its not as bad as it looks
 				// Find a way to check the arraylist to see if it contains a duplicate because that doesn't use a for loop
 				checkProp.clear();
 				for (Properties Property : player.getOwnedMonopolies()) {
-					// The below yellow flag is some bullshit and I think its bc it's a reference but this is the part that doesn't quite work
-					if (Arrays.asList(checkProp).contains(Property) == true){
-						checkProp.set(0, null);
+					// Check to see if the property set contains duplicates 
+					if (checkProp.contains(Property)==true){
+						checks.add(false);
 					}
 					else{
 						checkProp.add(Property);
 					}
 				}
-
-				if(Arrays.asList(checkProp).contains(null) == true)
-				{
-					checks.add(false);
-				}
 		}
+			// This is the arraylist checks and if anything is false
 			if(checks.contains(false) == true){
-				System.out.println("***THERE WAS AN ERROR ON THIS TURN***");
+				System.out.println("************THERE WAS AN ERROR ON THIS TURN************");
 			}
 	}
 
