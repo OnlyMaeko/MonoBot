@@ -4,7 +4,11 @@ Authors: Michael Wallison & Marko Melishchuk
 
 Project Description: MonoBot is a machine learning project with the goal to create a fully functioning and interactive bot to play monopoly against. Over the course of the project we aim to build a program to “learn” how to play monopoly. Upon completion of learning we will create an interface for a player to play against versions of the bot. The versions will consist of the most advanced generation as well as versions with hand tailored personalities. The final product will include an interface that allows a user to pit bots against one another to test strategies and view how they play against each other.
 
-Goals: 
+Stateful Protocol Goals
+- Marko Melishchuk CS 544 Final Project, the goal of the assignment is to implement a custom protocol (probably an application/session layer) by writing a server and a client that uses the stateful protocol 
+
+
+Machine Learning Goals: 
 - Create a functional bot that plays monopoly against a bot of the same strength. We are currently testing our infrastructure and are closing in on completing step one.
 
 - Create a way to evaluate a game state at any point and then make decisions based on said game state evaluation.
