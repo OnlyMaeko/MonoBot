@@ -8,11 +8,30 @@ import java.awt.geom.Rectangle2D;
 
 public class Interface {
 
+	// Game state
 	private ArrayList<Player> players;
 	private Board board;
 	private Deck deck;
 	private Scanner scanner;
 	private GameWindow guiWindow;
+	
+	// Turn management
+	private enum TurnState {
+		WAITING_FOR_ROLL, 
+		DICE_ROLLED, 
+		LANDED_ON_PROPERTY, 
+		BUYING_PROPERTY, 
+		PAYING_RENT,
+		ENDED
+	}
+	
+	private Player currentPlayer;
+	private int currentPlayerIndex = 0;
+	private TurnState turnState = TurnState.WAITING_FOR_ROLL;
+	private int dice1, dice2, totalDiceRoll;
+	private int speedingCount = 0;
+	private Properties landedProperty;
+	private int turnCount = 0;
 
 	public Interface() {
 		scanner = new Scanner(System.in);
@@ -50,6 +69,361 @@ public class Interface {
 		SwingUtilities.invokeLater(() -> {
 			new GameWindow(this);
 		});
+	}
+	
+	// ============ TURN MANAGEMENT ============
+	
+	public void startNewTurn() {
+		// Get current player
+		if (players.size() == 0) {
+			return;
+		}
+		
+		currentPlayer = players.get(currentPlayerIndex);
+		turnState = TurnState.WAITING_FOR_ROLL;
+		speedingCount = 0;
+		
+		if (guiWindow != null) {
+			guiWindow.updateTurnUI(currentPlayer, turnState);
+			guiWindow.log("\n========================================");
+			guiWindow.log("TURN #" + (turnCount + 1) + " - " + currentPlayer.getPlayerName() + "'s Turn");
+			guiWindow.log("========================================");
+			guiWindow.log("Ready to roll? Click 'Roll Dice' to continue.");
+		}
+	}
+	
+	public void rollDiceFromGUI() {
+		// Only allow rolling when waiting for a roll (prevents multiple rolls per turn unless doubles)
+		if (turnState != TurnState.WAITING_FOR_ROLL) {
+			return; // Invalid state for rolling
+		}
+		
+		// Roll the dice
+		dice1 = (int) (Math.random() * 6) + 1;
+		dice2 = (int) (Math.random() * 6) + 1;
+		totalDiceRoll = dice1 + dice2;
+		
+		if (guiWindow != null) {
+			guiWindow.log(currentPlayer.getPlayerName() + " rolled: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
+		}
+		
+		// Check jail logic
+		jailChecker(currentPlayer, dice1, dice2);
+		
+		// Triple doubles sends to jail
+		if (dice1 == dice2 && speedingCount == 2) {
+			currentPlayer.setLocation(10);
+			currentPlayer.setInJail(true);
+			if (guiWindow != null) {
+				guiWindow.log("Three doubles in a row! Going to Jail!");
+			}
+			endTurn();
+			return;
+		}
+		
+		// If in jail after check, can't move
+		if (currentPlayer.getInJail()) {
+			if (guiWindow != null) {
+				guiWindow.log(currentPlayer.getPlayerName() + " is in jail and cannot move.");
+			}
+			endTurn();
+			return;
+		}
+		
+		// Move the player
+		int currentLocation = currentPlayer.getLocation();
+		int newLocation = (currentLocation + totalDiceRoll) % 40;
+		
+		// Check if passed Go
+		if (newLocation < currentLocation) {
+			currentPlayer.changeMoney(200);
+			if (guiWindow != null) {
+				guiWindow.log(currentPlayer.getPlayerName() + " passed Go! Collected $200.");
+			}
+		}
+		
+		currentPlayer.setLocation(newLocation);
+		landedProperty = board.getProperty(newLocation);
+		
+		turnState = TurnState.DICE_ROLLED;
+		
+		if (guiWindow != null) {
+			guiWindow.log(currentPlayer.getPlayerName() + " landed on " + landedProperty.getPropName());
+			guiWindow.updateTurnUI(currentPlayer, turnState);
+		}
+		
+		// Handle landing on property
+		handleLandedProperty();
+	}
+	
+	private void handleLandedProperty() {
+		if (landedProperty.getBaseRent() != 0) {
+			// Rentable property
+			turnState = TurnState.PAYING_RENT;
+			updateGameState(currentPlayer, landedProperty, totalDiceRoll);
+		} else {
+			// Non-rentable space
+			handleSpecialSpace();
+		}
+	}
+	
+	private void handleSpecialSpace() {
+		int position = landedProperty.getBoardPosition();
+		
+		if (position == 4) {
+			// Income tax
+			currentPlayer.changeMoney(-200);
+			if (guiWindow != null) {
+				guiWindow.log(currentPlayer.getPlayerName() + " paid Income Tax: $200");
+			}
+		} else if (position == 38) {
+			// Luxury tax
+			currentPlayer.changeMoney(-100);
+			if (guiWindow != null) {
+				guiWindow.log(currentPlayer.getPlayerName() + " paid Luxury Tax: $100");
+			}
+		} else if (position == 30) {
+			// Go to Jail
+			currentPlayer.setLocation(10);
+			currentPlayer.setInJail(true);
+			if (guiWindow != null) {
+				guiWindow.log(currentPlayer.getPlayerName() + " sent to Jail!");
+			}
+		} else if (landedProperty.getPropName().equals("Chance")) {
+			handleChanceCard();
+		} else if (landedProperty.getPropName().equals("Community Chest")) {
+			handleCommunityChestCard();
+		}
+		
+		// After handling special space, check if we're on a buyable property
+		if (board.getProperty(currentPlayer.getLocation()).getBaseRent() != 0) {
+			landedProperty = board.getProperty(currentPlayer.getLocation());
+			turnState = TurnState.LANDED_ON_PROPERTY;
+			updateGameState(currentPlayer, landedProperty, totalDiceRoll);
+		} else {
+			turnState = TurnState.DICE_ROLLED;
+			checkForDoubles();
+		}
+	}
+	
+	private void handleChanceCard() {
+		Cards card = deck.getChanceDeck().get(0);
+		deck.getChanceDeck().remove(0);
+		String cardName = card.getCardName();
+		if (!(cardName.equals("GetOutOfJail"))) {
+			deck.getChanceDeck().add(card);
+		}
+		
+		if (guiWindow != null) {
+			guiWindow.log("*** CHANCE CARD: " + cardName + " ***");
+		}
+		
+		// Process card based on type
+		// (Chance logic from original code - keeping the same)
+		int oldLocation = currentPlayer.getLocation();
+		
+		switch (cardName) {
+			case "Boardwalk":
+				currentPlayer.setLocation(39);
+				break;
+			case "Go":
+				currentPlayer.setLocation(0);
+				currentPlayer.changeMoney(200);
+				break;
+			case "Illinois":
+				currentPlayer.setLocation(24);
+				break;
+			case "StCharles":
+				currentPlayer.setLocation(11);
+				break;
+			case "Railroad":
+				if (currentPlayer.getLocation() == 7) {
+					currentPlayer.setLocation(15);
+				} else if (currentPlayer.getLocation() == 22) {
+					currentPlayer.setLocation(25);
+				} else {
+					currentPlayer.setLocation(5);
+					currentPlayer.changeMoney(200);
+				}
+				break;
+			case "Utility":
+				if (currentPlayer.getLocation() == 7) {
+					currentPlayer.setLocation(12);
+				} else if (currentPlayer.getLocation() == 22) {
+					currentPlayer.setLocation(28);
+				} else {
+					currentPlayer.setLocation(12);
+					currentPlayer.changeMoney(200);
+				}
+				break;
+			case "Get50":
+				currentPlayer.changeMoney(50);
+				break;
+			case "GetOutOfJail":
+				currentPlayer.setGetOutOfJailFreeChance(true);
+				break;
+			case "GoBack3":
+				currentPlayer.setLocation(currentPlayer.getLocation() - 3);
+				break;
+			case "GoToJail":
+				currentPlayer.setLocation(10);
+				currentPlayer.setInJail(true);
+				break;
+			case "PropertyRepairs":
+				int totalRepairCost = 0;
+				for (Properties property : currentPlayer.getOwnedProperties()) {
+					int numberOfHouses = property.getNumberOfHouses();
+					if (property.getIsHotel()) {
+						totalRepairCost += 100;
+					} else {
+						totalRepairCost += 25 * numberOfHouses;
+					}
+				}
+				currentPlayer.changeMoney(-totalRepairCost);
+				break;
+			case "Pay15":
+				currentPlayer.changeMoney(-15);
+				break;
+			case "Reading":
+				currentPlayer.setLocation(5);
+				currentPlayer.changeMoney(200);
+				break;
+			case "PayEachPlayer50":
+				int paymentAmount = (players.size() - 1) * 50;
+				currentPlayer.changeMoney(-paymentAmount);
+				for (Player otherPlayer : players) {
+					if (otherPlayer != currentPlayer) {
+						otherPlayer.changeMoney(50);
+					}
+				}
+				break;
+			case "Get150":
+				currentPlayer.changeMoney(150);
+				break;
+		}
+		
+		// If moved to a new location, check if passed Go
+		if (currentPlayer.getLocation() < oldLocation && !cardName.equals("Go")) {
+			currentPlayer.changeMoney(200);
+		}
+		
+		// If moved to a rentable property, handle it
+		landedProperty = board.getProperty(currentPlayer.getLocation());
+		if (landedProperty.getBaseRent() != 0) {
+			updateGameState(currentPlayer, landedProperty, totalDiceRoll);
+		}
+	}
+	
+	private void handleCommunityChestCard() {
+		Cards card = deck.getCommunityChestDeck().get(0);
+		deck.getCommunityChestDeck().remove(0);
+		deck.getCommunityChestDeck().add(card);
+		String cardName = card.getCardName();
+		
+		if (guiWindow != null) {
+			guiWindow.log("*** COMMUNITY CHEST: " + cardName + " ***");
+		}
+		
+		switch (cardName) {
+			case "Get200":
+				currentPlayer.changeMoney(200);
+				break;
+			case "Go":
+				currentPlayer.setLocation(0);
+				currentPlayer.changeMoney(200);
+				break;
+			case "Pay50":
+				currentPlayer.changeMoney(-50);
+				break;
+			case "Get50":
+				currentPlayer.changeMoney(50);
+				break;
+			case "GetOutOfJail":
+				currentPlayer.setGetOutOfJailFreeChest(true);
+				break;
+			case "GoToJail":
+				currentPlayer.setLocation(10);
+				currentPlayer.setInJail(true);
+				break;
+			case "Get100":
+				currentPlayer.changeMoney(100);
+				break;
+			case "Get20":
+				currentPlayer.changeMoney(20);
+				break;
+			case "Get10FromEachPlayer":
+				int paymentAmount = (players.size() - 1) * 10;
+				currentPlayer.changeMoney(paymentAmount);
+				for (Player otherPlayer : players) {
+					if (otherPlayer != currentPlayer) {
+						otherPlayer.changeMoney(-10);
+						checkBroke(otherPlayer, board);
+					}
+				}
+				break;
+			case "Pay100":
+				currentPlayer.changeMoney(-100);
+				break;
+			case "Get25":
+				currentPlayer.changeMoney(25);
+				break;
+			case "StreetRepairs":
+				int totalRepairCost = 0;
+				for (Properties property : currentPlayer.getOwnedProperties()) {
+					int numberOfHouses = property.getNumberOfHouses();
+					if (property.getIsHotel()) {
+						totalRepairCost += 115;
+					} else {
+						totalRepairCost += 40 * numberOfHouses;
+					}
+				}
+				currentPlayer.changeMoney(-totalRepairCost);
+				break;
+			case "Get10":
+				currentPlayer.changeMoney(-10);
+				break;
+		}
+	}
+	
+	private void checkForDoubles() {
+		if (dice1 == dice2) {
+			speedingCount++;
+			if (speedingCount < 3) {
+				turnState = TurnState.WAITING_FOR_ROLL;
+				if (guiWindow != null) {
+					guiWindow.log("Doubles! Roll again!");
+					guiWindow.updateTurnUI(currentPlayer, turnState);
+				}
+			}
+		} else {
+			endTurn();
+		}
+	}
+	
+	public void endTurn() {
+		turnState = TurnState.ENDED;
+		
+		checkBroke(currentPlayer, board);
+		
+		if (guiWindow != null) {
+			guiWindow.log(currentPlayer.getPlayerName() + " ended turn. Balance: $" + currentPlayer.getMoneyAmount());
+		}
+		
+		// Move to next player
+		currentPlayerIndex++;
+		if (currentPlayerIndex >= players.size()) {
+			currentPlayerIndex = 0;
+		}
+		turnCount++;
+		
+		// Start next turn if game not over
+		if (players.size() > 1 && turnCount <= 1000) {
+			startNewTurn();
+		} else if (players.size() <= 1) {
+			if (guiWindow != null) {
+				guiWindow.displayGameResults();
+			}
+		}
 	}
 
 	private void showTurnMenu(Player player) {
@@ -145,279 +519,11 @@ public class Interface {
 		System.out.println("\n================================\n");
 	}
 
+	// OLD playTurn - now handled by GUI
+	// Use rollDiceFromGUI() and endTurn() instead
+	@Deprecated
 	public void playTurn(Player player, int speedingCount) {
-
-		System.out.println("/////////////////////////");
-
-		// Roll the dice
-		int dice1 = (int) (Math.random() * 6) + 1;
-		int dice2 = (int) (Math.random() * 6) + 1;
-		int totalDiceRoll = dice1 + dice2;
-		
-		// Display dice roll and ask if player wants to continue
-		System.out.println("\n" + player.getPlayerName() + " rolled: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
-		if (showPostRollMenu(player)) {
-			System.out.println(player.getPlayerName() + " ended their turn.\n");
-			return;
-		}
-		
-		// Checks if the player is in jail - moved into a method for readability
-		jailChecker(player, dice1, dice2);
-
-		if (dice1 == dice2 && speedingCount == 2) {
-			player.setLocation(10);
-			player.setInJail(true);
-		}
-		
-		if (player.getInJail() == false) {
-
-			// Move the player
-			int currentPlayerLocation = player.getLocation();
-			int newPlayerLocation = (currentPlayerLocation + totalDiceRoll) % 40;
-			
-			// If you've crossed Go it means it went under 0 so you gain $200
-			if (newPlayerLocation < currentPlayerLocation) {
-				player.changeMoney(200);
-			}
-
-			// Update the player's location
-			player.setLocation(newPlayerLocation);
-
-			// Perform actions based on the new location
-			Properties currentProperty = board.getProperty(newPlayerLocation);
-
-			if (currentProperty.getBaseRent() != 0) {
-				updateGameState(player, currentProperty, totalDiceRoll);
-			} else {
-				if (currentProperty.getBoardPosition() == 4) {
-					player.changeMoney(-200);
-				} else if (currentProperty.getBoardPosition() == 38) {
-					player.changeMoney(-100);
-				} else if (currentProperty.getBoardPosition() == 30) {
-					player.setLocation(10);
-					player.setInJail(true);
-				} else if (currentProperty.getPropName().equals("Chance")) {
-					Cards card = deck.getChanceDeck().get(0);
-					deck.getChanceDeck().remove(0);
-					String cardName = card.getCardName();
-					if (!(cardName.equals("GetOutOfJail"))) {
-						deck.getChanceDeck().add(card);
-					}
-					System.out.println("\n*** CHANCE CARD DRAWN: " + cardName + " ***");
-					switch (cardName) {
-						case "Boardwalk":
-							player.setLocation(39);
-							currentProperty = board.getProperty(player.getLocation());
-							System.out.println("Action: Advance to Boardwalk");
-							updateGameState(player, currentProperty, totalDiceRoll);
-							break;
-						case "Go":
-							player.setLocation(0);
-							player.changeMoney(200);
-							System.out.println("Action: Advance to Go and collect $200");
-							break;
-						case "Illinois":
-							player.setLocation(24);
-							currentProperty = board.getProperty(player.getLocation());
-							System.out.println("Action: Advance to Illinois Avenue");
-							updateGameState(player, currentProperty, totalDiceRoll);
-							if (player.getLocation() < newPlayerLocation) {
-								player.changeMoney(200);
-							}
-							break;
-						case "StCharles":
-							player.setLocation(11);
-							currentProperty = board.getProperty(player.getLocation());
-							System.out.println("Action: Advance to St. Charles Place");
-							updateGameState(player, currentProperty, totalDiceRoll);
-							if (player.getLocation() < newPlayerLocation) {
-								player.changeMoney(200);
-							}
-							break;
-						case "Railroad":
-							if (player.getLocation() == 7) {
-								player.setLocation(15);
-							} else if (player.getLocation() == 22) {
-								player.setLocation(25);
-							} else {
-								player.setLocation(5);
-								player.changeMoney(200);
-							}
-							currentProperty = board.getProperty(player.getLocation());
-							System.out.println("Action: Advance to the nearest Railroad");
-							updateGameState(player, currentProperty, totalDiceRoll);
-							break;
-						case "Utility":
-							if (player.getLocation() == 7) {
-								player.setLocation(12);
-							} else if (player.getLocation() == 22) {
-								player.setLocation(28);
-							} else {
-								player.setLocation(12);
-								player.changeMoney(200);
-							}
-							currentProperty = board.getProperty(player.getLocation());
-							System.out.println("Action: Advance to the nearest Utility");
-							updateGameState(player, currentProperty, totalDiceRoll);		
-							break;
-						case "Get50":
-							player.changeMoney(50);
-							System.out.println("Action: Collect $50");
-							break;
-						case "GetOutOfJail":
-							player.setGetOutOfJailFreeChance(true);
-							System.out.println("Action: Get Out of Jail Free Card (save for later)");
-							break;
-						case "GoBack3":
-							player.setLocation(player.getLocation() - 3);
-							System.out.println("Action: Go back 3 spaces");
-							break;
-						case "GoToJail":
-							player.setLocation(10);
-							player.setInJail(true);
-							System.out.println("Action: Go directly to Jail");
-							break;
-						case "PropertyRepairs":
-							int totalRepairCost = 0;
-							for (Properties property : player.getOwnedProperties()) {
-								int numberOfHouses = property.getNumberOfHouses();
-								if (property.getIsHotel()) {
-									totalRepairCost += 100;
-								} else {
-									totalRepairCost += 25 * numberOfHouses;
-								}
-							}
-							player.changeMoney(-totalRepairCost);
-							System.out.println("Action: Pay for property repairs - $25 per house, $100 per hotel. Total: $" + totalRepairCost);
-							break;
-						case "Pay15":
-							player.changeMoney(-15);
-							System.out.println("Action: Pay $15");
-							break;
-						case "Reading":
-							player.setLocation(5);
-							player.changeMoney(200);
-							currentProperty = board.getProperty(player.getLocation());
-							System.out.println("Action: Advance to Reading Railroad and collect $200");
-							updateGameState(player, currentProperty, totalDiceRoll);
-							break;
-						case "PayEachPlayer50":
-							int paymentAmount = (players.size() - 1) * 50;
-							player.changeMoney(-paymentAmount);
-							for (Player otherPlayer : players) {
-								if (otherPlayer != player) {
-									otherPlayer.changeMoney(50);
-								}
-								checkBroke(player, board);
-							}
-							System.out.println("Action: Pay each player $50");
-							break;
-						case "Get150":
-							player.changeMoney(150);
-							System.out.println("Action: Collect $150");
-							break;
-						default:
-							System.out.println("Action: Unknown card effect");
-							break;
-					}
-				} else if (currentProperty.getPropName().equals("Community Chest")) {
-					Cards card = deck.getCommunityChestDeck().get(0);
-					deck.getCommunityChestDeck().remove(0);
-					deck.getCommunityChestDeck().add(card);
-					String cardName = card.getCardName();
-					System.out.println("\n*** COMMUNITY CHEST CARD DRAWN: " + cardName + " ***");
-					switch (cardName) {
-						case "Get200":
-							player.changeMoney(200);
-							System.out.println("Action: Collect $200");
-							break;
-						case "Go":
-							player.setLocation(0);
-							player.changeMoney(200);
-							System.out.println("Action: Advance to Go and collect $200");
-							break;
-						case "Pay50":
-							player.changeMoney(-50);
-							System.out.println("Action: Pay $50");
-							break;
-						case "Get50":
-							player.changeMoney(50);
-							System.out.println("Action: Collect $50");
-							break;
-						case "GetOutOfJail":
-							player.setGetOutOfJailFreeChest(true);
-							System.out.println("Action: Get Out of Jail Free Card (save for later)");
-							break;
-						case "GoToJail":
-							player.setLocation(10);
-							player.setInJail(true);
-							System.out.println("Action: Go directly to Jail");
-							break;		
-						case "Get100":
-							player.changeMoney(100);
-							System.out.println("Action: Collect $100");
-							break;
-						case "Get20":
-							player.changeMoney(20);
-							System.out.println("Action: Collect $20");
-							break;
-						case "Get10FromEachPlayer":
-							int paymentAmount = (players.size() - 1) * 10;
-							player.changeMoney(paymentAmount);
-							for (Player otherPlayer : players) {
-								if (otherPlayer != player) {
-									otherPlayer.changeMoney(-10);
-									checkBroke(otherPlayer, board);
-								}
-							}
-							System.out.println("Action: Collect $10 from each player");
-							break;
-						case "Pay100":
-							player.changeMoney(-100);
-							System.out.println("Action: Pay $100");
-							break;
-						case "Get25":
-							player.changeMoney(25);
-							System.out.println("Action: Collect $25");
-							break;
-						case "StreetRepairs":
-							int totalRepairCost = 0;
-							for (Properties property : player.getOwnedProperties()) {
-								int numberOfHouses = property.getNumberOfHouses();
-								if (property.getIsHotel()) {
-									totalRepairCost += 115;
-								} else {
-									totalRepairCost += 40 * numberOfHouses;
-								}
-							}
-							player.changeMoney(-totalRepairCost);
-							System.out.println("Action: Pay for street repairs - $40 per house, $115 per hotel. Total: $" + totalRepairCost);
-							break;
-						case "Get10":
-							player.changeMoney(-10);
-							System.out.println("Action: Pay $10");
-							break;
-						default:
-							System.out.println("Action: Unknown card effect");
-							break;
-					}
-				}
-			}
-
-			checkBroke(player, board);
-
-			System.out.println(player.getPlayerName() + " landed on " + currentProperty.getPropName());
-
-			if (dice1 == dice2 && player.getInJail() == false) {
-				System.out.println("\nDouble rolled! " + player.getPlayerName() + " gets another turn.\n");
-				speedingCount++;
-				pauseForInput("Press Enter for your next turn...");
-				showTurnMenu(player);
-				playTurn(player, speedingCount);
-			}
-		} else {
-			System.out.println(player.getPlayerName() + " is in jail and cannot move this turn.");
-		}
+		// This method is deprecated - all turn logic is now handled through the GUI
 	}
 
 	public static void main(String[] args) {
@@ -849,14 +955,14 @@ public class Interface {
 	}
 
 	private class GameWindow extends JFrame implements ActionListener {
-		private Interface game;
-		private GameBoardPanel boardPanel;
-		private JTextArea logArea;
-		private JButton rollDiceButton, viewStateButton, viewPropertiesButton;
-		private JButton nextTurnButton;
-		private JLabel currentPlayerLabel, balanceLabel, positionLabel;
-		private int currentPlayerIndex = 0;
-		private int turnCount = 0;
+		private final Interface game;
+		private final GameBoardPanel boardPanel;
+		private final JTextArea logArea;
+		private final JButton rollDiceButton, viewStateButton, viewPropertiesButton;
+		private final JButton nextTurnButton, buyHouseButton, mortgageButton;
+		private final JLabel currentPlayerLabel, balanceLabel, positionLabel;
+		private final int currentPlayerIndex = 0;
+		private final int turnCount = 0;
 		private boolean waitingForInput = false;
 
 		public GameWindow(Interface game) {
@@ -909,6 +1015,14 @@ public class Interface {
 			viewPropertiesButton.addActionListener(this);
 			viewPropertiesButton.setFont(new Font("Arial", Font.PLAIN, 12));
 
+			buyHouseButton = new JButton("Buy House/Hotel");
+			buyHouseButton.addActionListener(this);
+			buyHouseButton.setFont(new Font("Arial", Font.PLAIN, 12));
+
+			mortgageButton = new JButton("Mortgage Property");
+			mortgageButton.addActionListener(this);
+			mortgageButton.setFont(new Font("Arial", Font.PLAIN, 12));
+
 			nextTurnButton = new JButton("End Turn");
 			nextTurnButton.addActionListener(this);
 			nextTurnButton.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -916,6 +1030,8 @@ public class Interface {
 			buttonPanel.add(rollDiceButton);
 			buttonPanel.add(viewStateButton);
 			buttonPanel.add(viewPropertiesButton);
+			buttonPanel.add(buyHouseButton);
+			buttonPanel.add(mortgageButton);
 			buttonPanel.add(nextTurnButton);
 			bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
 
@@ -931,40 +1047,23 @@ public class Interface {
 		}
 
 		private void startGameLoop() {
-			new Thread(() -> {
-				int turns = 0;
-				while (game.players.size() > 1 && turns <= 1000) {
-					Player currPlayer = game.players.get(currentPlayerIndex);
-					updatePlayerInfo(currPlayer);
-					log("\n========================================");
-					log("TURN #" + (turns + 1) + " - " + currPlayer.getPlayerName() + "'s Turn");
-					log("========================================");
-
-					waitForRoll();
-
-					// Execute turn
-					game.playTurn(currPlayer, 0);
-
-					log("End of turn balance: $" + currPlayer.getMoneyAmount());
-
-					// Move to next player
-					if (currentPlayerIndex >= game.players.size() - 1) {
-						currentPlayerIndex = 0;
-					} else {
-						currentPlayerIndex++;
-					}
-					turns++;
-
-					// Refresh board
-					SwingUtilities.invokeLater(() -> boardPanel.repaint());
-				}
-
-				// Game over
-				displayGameResults();
-			}).start();
+			// Start the first turn
+			SwingUtilities.invokeLater(() -> {
+				game.startNewTurn();
+				updatePlayerInfo(game.currentPlayer);
+			});
 		}
 
-		private void waitForRoll() {
+		public void updateTurnUI(Player player, TurnState state) {
+			SwingUtilities.invokeLater(() -> {
+				updatePlayerInfo(player);
+				rollDiceButton.setEnabled(state == TurnState.WAITING_FOR_ROLL);
+				nextTurnButton.setEnabled(state != TurnState.WAITING_FOR_ROLL);
+				boardPanel.repaint();
+			});
+		}
+
+		public void waitForRoll() {
 			waitingForInput = true;
 			while (waitingForInput) {
 				try {
@@ -996,6 +1095,34 @@ public class Interface {
 			
 			return buying;
 		}
+		
+		public void showBuyHouseDialog(Player player) {
+			StringBuilder message = new StringBuilder("Available properties to upgrade:\n\n");
+			for (Properties prop : player.getOwnedMonopolies()) {
+				if (prop.getNumberOfHouses() < 4 && !prop.getIsHotel()) {
+					message.append(prop.getPropName()).append(" - $").append(prop.getHouseCost()).append("\n");
+				} else if (prop.getNumberOfHouses() == 4 && !prop.getIsHotel()) {
+					message.append(prop.getPropName()).append(" - HOTEL $").append(prop.getHotelCost()).append("\n");
+				}
+			}
+			
+			JOptionPane.showMessageDialog(GameWindow.this, message.toString(), "Property Upgrades Available", JOptionPane.INFORMATION_MESSAGE);
+		}
+		
+		public void showMortgageDialog(Player player) {
+			StringBuilder message = new StringBuilder("Properties you can mortgage:\n\n");
+			for (Properties prop : player.getOwnedProperties()) {
+				if (!prop.getIsMortgaged() && prop.getNumberOfHouses() == 0) {
+					message.append(prop.getPropName()).append(" - Mortgage: $").append(prop.getMortgageValue()).append("\n");
+				}
+			}
+			
+			if (message.toString().equals("Properties you can mortgage:\n\n")) {
+				JOptionPane.showMessageDialog(GameWindow.this, "No properties available to mortgage.", "Mortgage", JOptionPane.INFORMATION_MESSAGE);
+			} else {
+				JOptionPane.showMessageDialog(GameWindow.this, message.toString(), "Available to Mortgage", JOptionPane.INFORMATION_MESSAGE);
+			}
+		}
 
 		public void log(String message) {
 			SwingUtilities.invokeLater(() -> {
@@ -1009,18 +1136,20 @@ public class Interface {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (e.getSource() == rollDiceButton) {
-				if (waitingForInput) {
-					waitingForInput = false;
-					rollDiceButton.setEnabled(false);
-				}
+				rollDiceButton.setEnabled(false);
+				game.rollDiceFromGUI();
 			} else if (e.getSource() == viewStateButton) {
 				displayGameState();
 			} else if (e.getSource() == viewPropertiesButton) {
-				Player currPlayer = game.players.get(currentPlayerIndex);
-				displayPlayerProperties(currPlayer);
+				displayPlayerProperties(game.currentPlayer);
+			} else if (e.getSource() == buyHouseButton) {
+				showBuyHouseDialog(game.currentPlayer);
+			} else if (e.getSource() == mortgageButton) {
+				showMortgageDialog(game.currentPlayer);
 			} else if (e.getSource() == nextTurnButton) {
-				if (!waitingForInput) {
-					waitingForInput = true;
+				game.endTurn();
+				if (game.players.size() > 1) {
+					updatePlayerInfo(game.currentPlayer);
 				}
 			}
 		}
