@@ -87,6 +87,24 @@ public class Interface {
 		}
 	}
 
+	private boolean showPostRollMenu(Player player) {
+		System.out.println("\n--- " + player.getPlayerName() + "'s Options ---");
+		System.out.println("1. Continue with turn");
+		System.out.println("2. End turn now");
+		
+		System.out.print("\nSelect an option (1-2): ");
+		
+		int choice = 0;
+		try {
+			choice = scanner.nextInt();
+		} catch (Exception e) {
+			scanner.nextLine();
+			choice = 1;
+		}
+		
+		return choice == 2;
+	}
+
 	private void displayPlayerInfo(Player player) {
 		System.out.println("\nCurrent Player: " + player.getPlayerName());
 		System.out.println("Position: " + player.getLocation());
@@ -135,6 +153,13 @@ public class Interface {
 		int dice1 = (int) (Math.random() * 6) + 1;
 		int dice2 = (int) (Math.random() * 6) + 1;
 		int totalDiceRoll = dice1 + dice2;
+		
+		// Display dice roll and ask if player wants to continue
+		System.out.println("\n" + player.getPlayerName() + " rolled: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
+		if (showPostRollMenu(player)) {
+			System.out.println(player.getPlayerName() + " ended their turn.\n");
+			return;
+		}
 		
 		// Checks if the player is in jail - moved into a method for readability
 		jailChecker(player, dice1, dice2);
@@ -381,8 +406,6 @@ public class Interface {
 
 			checkBroke(player, board);
 
-			// Print the dice roll and new location
-			System.out.println(player.getPlayerName() + " rolled: " + dice1 + " + " + dice2 + " = " + totalDiceRoll);
 			System.out.println(player.getPlayerName() + " landed on " + currentProperty.getPropName());
 
 			if (dice1 == dice2 && player.getInJail() == false) {
