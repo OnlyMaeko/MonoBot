@@ -1,5 +1,9 @@
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
+import java.io.PrintWriter;
+import java.io.BufferedReader;
+import java.io.IOException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -14,6 +18,14 @@ public class Interface {
 	private Deck deck;
 	private Scanner scanner;
 	private GameWindow guiWindow;
+
+	// Network — set by Client.java after START_ACK via setServerConnection()
+	private PrintWriter  serverOut;   // sends ACTION messages to server
+	private BufferedReader serverIn;  // reads ACTION_ACK from server
+	private boolean networkEnabled = false;
+
+	// Latch released when the game ends so Client.java can proceed to send QUIT
+	private final CountDownLatch gameOverLatch = new CountDownLatch(1);
 	
 	// Turn management
 	private enum TurnState {
@@ -35,6 +47,63 @@ public class Interface {
 
 	public Interface() {
 		scanner = new Scanner(System.in);
+	}
+
+	/**
+	 * Called by Client.java after START_ACK to hand off the live socket streams.
+	 * Once set, Interface will send an ACTION message to the server after each turn.
+	 *
+	 * @param out PrintWriter connected to the server socket output
+	 * @param in  BufferedReader connected to the server socket input
+	 */
+	public void setServerConnection(PrintWriter out, BufferedReader in) {
+		this.serverOut     = out;
+		this.serverIn      = in;
+		this.networkEnabled = true;
+	}
+
+	/**
+	 * Blocks the calling thread (Client.java main thread) until the game is over.
+	 * Released by notifyGameOver() when displayGameResults() is called.
+	 */
+	public void waitForGameOver() throws InterruptedException {
+		gameOverLatch.await();
+	}
+
+	/**
+	 * Called internally when the game ends. Releases the Client.java thread
+	 * so it can proceed to send GAME_OVER (PDU 12) to the server.
+	 */
+	private void notifyGameOver() {
+		gameOverLatch.countDown();
+	}
+
+	/**
+	 * Serializes the current game state via JsonSerializer and sends it to the server
+	 * as a TURN_NOTIFY message (PDU 13). Waits for TURN_NOTIFY ACK before returning.
+	 * Safe to call from any thread — synchronized on serverOut.
+	 *
+	 * @param lastEvent human-readable description of what happened this turn
+	 */
+	private void sendTurnState(String lastEvent) {
+		if (!networkEnabled) return;
+
+		String json = JsonSerializer.serialize(
+			players, board, turnCount, currentPlayerIndex,
+			dice1, dice2, lastEvent
+		);
+
+		synchronized (serverOut) {
+			try {
+				serverOut.println(State.TURN_NOTIFY + " " + json);   // "13 {json}"
+				String ack = serverIn.readLine();
+				if (ack == null || !ack.startsWith(State.TURN_NOTIFY)) {
+					System.err.println("[Interface] Unexpected server response to TURN_NOTIFY: " + ack);
+				}
+			} catch (IOException e) {
+				System.err.println("[Interface] Failed to send turn state: " + e.getMessage());
+			}
+		}
 	}
 
 	public void startGame() {
@@ -408,13 +477,21 @@ public class Interface {
 		if (guiWindow != null) {
 			guiWindow.log(currentPlayer.getPlayerName() + " ended turn. Balance: $" + currentPlayer.getMoneyAmount());
 		}
-		
+
+		// Build a summary of this turn for the server log before advancing indices
+		String turnEvent = currentPlayer.getPlayerName()
+			+ " ended turn on " + board.getProperty(currentPlayer.getLocation()).getPropName()
+			+ " with $" + currentPlayer.getMoneyAmount();
+
 		// Move to next player
 		currentPlayerIndex++;
 		if (currentPlayerIndex >= players.size()) {
 			currentPlayerIndex = 0;
 		}
 		turnCount++;
+
+		// Send full game state to server after each turn
+		sendTurnState(turnEvent);
 		
 		// Start next turn if game not over
 		if (players.size() > 1 && turnCount <= 1000) {
@@ -423,6 +500,8 @@ public class Interface {
 			if (guiWindow != null) {
 				guiWindow.displayGameResults();
 			}
+			// Release Client.java so it can send QUIT
+			notifyGameOver();
 		}
 	}
 

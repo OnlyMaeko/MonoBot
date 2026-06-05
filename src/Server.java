@@ -2,35 +2,32 @@ import java.io.*;
 import java.net.*;
 import java.util.Properties;
 
+
 /**
- * Monobot Protocol Server (v1)
+ * Monobot Protocol Server (v2)
  *
- * Implements the full server-side DFA:
- *   CONNECTED -> HANDSHAKED -> AUTHENTICATED -> IN_LOBBY -> IN_GAME -> TERMINATED
+ * Implements the full server-side DFA with all 15 PDU codes:
+ *   CONNECTED -> HANDSHAKED -> AWAITING_AUTH -> AUTHENTICATED
+ *   -> IN_LOBBY -> IN_GAME -> TERMINATED
  *
- * Configuration: server.properties
- *   port=9090
+ * Key behaviors:
+ *   - After HELLO_ACK, server immediately sends AUTH_REQUESTED (PDU 04)
+ *   - AUTH_FAIL keeps state in AWAITING_AUTH so client can retry
+ *   - LOBBY_LIST_REQ returns current lobby list as LOBBY_STATE JSON
+ *   - LOBBY_CREATE / LOBBY_JOIN advance to IN_LOBBY, return LOBBY_STATE
+ *   - GAME_START launches the Monopoly UI on the client
+ *   - TURN_NOTIFY receives full game state JSON, logs it, replies TURN_NOTIFY
+ *   - GAME_OVER / DISCONNECT cleanly terminate the session
+ *   - Any DFA violation sends ERROR_TERMINATION (PDU 15) and closes connection
  *
- * Usage: java Server [server.properties]
+ * Configuration: server.properties  (port=9090)
+ * Usage:         java Server [server.properties]
  */
 public class Server {
 
-    // Protocol response codes
-    private static final String HELLO_ACK   = "HELLO_ACK";
-    private static final String HELLO_REJ   = "HELLO_REJ";
-    private static final String AUTH_ACK    = "AUTH_ACK";
-    private static final String AUTH_REJ    = "AUTH_REJ";
-    private static final String JOIN_ACK    = "JOIN_ACK";
-    private static final String JOIN_REJ    = "JOIN_REJ";
-    private static final String START_ACK   = "START_ACK";
-    private static final String START_REJ   = "START_REJ";
-    private static final String ACTION_ACK  = "ACTION_ACK";
-    private static final String ACTION_REJ  = "ACTION_REJ";
-    private static final String QUIT_ACK    = "QUIT_ACK";
-    private static final String ERROR       = "ERROR";
+    private static final LobbyManager lobbyManager = new LobbyManager();
 
     public static void main(String[] args) throws Exception {
-        // Load configuration
         Properties config = new Properties();
         String configFile = (args.length > 0) ? args[0] : "server.properties";
         try (FileInputStream fis = new FileInputStream(configFile)) {
@@ -39,136 +36,224 @@ public class Server {
             System.err.println("Warning: Could not load " + configFile + ", using defaults.");
         }
         int port = Integer.parseInt(config.getProperty("port", "9090"));
+        String validUser = config.getProperty("username");
+        String validPass = config.getProperty("password");
+        
+        if (validUser == null || validPass == null) {
+            System.err.println("Error: username and password must be set in " + configFile);
+            System.exit(1);
+        }
 
-        System.out.println("=== Monobot Protocol Server v1 ===");
+        System.out.println("=== Monobot Protocol Server v2 ===");
         System.out.println("Listening on port " + port + "...");
 
         ServerSocket serverSocket = new ServerSocket(port);
-
-        // Accept one client connection (single-client model)
         Socket clientSocket = serverSocket.accept();
-        System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
+        System.out.println("Client connected: "
+            + clientSocket.getInetAddress().getHostAddress());
 
-        handleClient(clientSocket);
-
+        handleClient(clientSocket, validUser, validPass);
         serverSocket.close();
     }
 
-    /**
-     * Drives the full DFA for one connected client session.
-     * Reads messages line-by-line, attempts state transitions,
-     * sends ACK or REJ responses accordingly.
-     */
-    private static void handleClient(Socket clientSocket) {
-        State state = State.CONNECTED;
+    private static void handleClient(Socket clientSocket, String validUser, String validPass) {
+        State  state       = State.CONNECTED;
+        String activeLobby = null;
+        String authUser    = null;
+
         System.out.println("[DFA] Initial state: " + state);
 
         try (
-            BufferedReader in  = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            BufferedReader in  = new BufferedReader(
+                                     new InputStreamReader(clientSocket.getInputStream()));
             PrintWriter    out = new PrintWriter(clientSocket.getOutputStream(), true)
         ) {
             while (state.isActive()) {
-                // Read the next message from the client
                 String message = in.readLine();
                 if (message == null) {
-                    // Client closed the connection unexpectedly
-                    System.out.println("[Server] Client disconnected unexpectedly in state: " + state);
+                    System.out.println("[Server] Client disconnected in state: " + state);
                     break;
                 }
+                System.out.println("[Server] Recv [" + state + "]: " + message);
 
-                System.out.println("[Server] Received: '" + message + "' (state=" + state + ")");
+                // CONNECTED: only HELLO is valid
+                if (state == State.CONNECTED) {
+                    try {
+                        State.TransitionResult result = state.transition(message, validUser, validPass);
+                        state = result.nextState;                        // HANDSHAKED
+                        send(out, State.HELLO_ACK, "");
+                        // Server immediately requests auth, move to AWAITING_AUTH
+                        send(out, State.AUTH_REQUESTED, "Please authenticate");
+                        state = State.AWAITING_AUTH;
+                        System.out.println("[DFA] -> HANDSHAKED -> AWAITING_AUTH");
+                    } catch (State.InvalidTransitionException e) {
+                        send(out, State.HELLO_REJ, e.getMessage());
+                        terminateWithError(out, e.getMessage());
+                        break;
+                    }
+                    continue;
+                }
 
-                // Attempt the DFA transition
+                // All other states
                 try {
-                    State nextState = state.transition(message);
-                    state = nextState;
-                    System.out.println("[DFA] Transitioned to: " + state);
+                    State.TransitionResult result = state.transition(message, validUser, validPass);
+                    String code = message.trim().split("\\s+")[0];
 
-                    // Send the appropriate ACK and handle any side effects
-                    switch (state) {
-                        case HANDSHAKED:
-                            out.println(HELLO_ACK);
-                            System.out.println("[Server] Sent: " + HELLO_ACK);
-                            break;
+                    // DISCONNECT from any state
+                    if (State.DISCONNECT.equals(code)) {
+                        send(out, State.DISCONNECT, "Goodbye");
+                        state = State.TERMINATED;
+                        System.out.println("[DFA] -> TERMINATED (DISCONNECT)");
+                        break;
+                    }
 
-                        case AUTHENTICATED:
-                            out.println(AUTH_ACK);
-                            System.out.println("[Server] Sent: " + AUTH_ACK);
-                            break;
+                    // AUTH result
+                    if (state == State.AWAITING_AUTH) {
+                        if (result.authFailed) {
+                            send(out, State.AUTH_FAIL, "Invalid credentials. Try again.");
+                            System.out.println("[DFA] AUTH_FAIL - staying AWAITING_AUTH");
+                        } else {
+                            authUser = result.payload;
+                            state    = result.nextState;                // AUTHENTICATED
+                            send(out, State.AUTH_OK, "Welcome " + authUser);
+                            System.out.println("[DFA] -> " + state + " user=" + authUser);
+                        }
+                        continue;
+                    }
 
-                        case IN_LOBBY:
-                            out.println(JOIN_ACK);
-                            System.out.println("[Server] Sent: " + JOIN_ACK);
-                            System.out.println("[Server] Player is in the lobby.");
-                            break;
+                    // LOBBY_LIST_REQ - no state change
+                    if (State.LOBBY_LIST_REQ.equals(code)) {
+                        String lobbyJson = lobbyManager.toJsonArray();
+                        send(out, State.LOBBY_STATE, lobbyJson);
+                        System.out.println("[Server] Sent lobby list: " + lobbyJson);
+                        continue;
+                    }
 
-                        case IN_GAME:
-                            // Distinguish between START (entering game) and ACTION (in-game move)
-                            String command = message.trim().split("\\s+")[0].toUpperCase();
-                            if (command.equals("START")) {
-                                out.println(START_ACK);
-                                System.out.println("[Server] Sent: " + START_ACK);
-                                System.out.println("[Server] Game starting — launching Interface...");
-                                // Launch the Monopoly game UI
-                                Interface game = new Interface();
-                                game.playGame();
-                            } else if (command.equals("ACTION")) {
-                                // Extract the action payload (everything after "ACTION ")
-                                String payload = message.trim().length() > 7
-                                    ? message.trim().substring(7).trim()
-                                    : "";
-                                System.out.println("[Server] Processing ACTION: " + payload);
-                                // Phase 1: echo back — game runs locally on Interface
-                                out.println(ACTION_ACK + " " + payload);
-                                System.out.println("[Server] Sent: " + ACTION_ACK + " " + payload);
-                            }
-                            break;
+                    // LOBBY_CREATE
+                    if (State.LOBBY_CREATE.equals(code)) {
+                        String lobbyName = result.payload;
+                        LobbyManager.Lobby lobby = lobbyManager.create(lobbyName, authUser);
+                        if (lobby == null) {
+                            send(out, State.ERROR_TERM,
+                                "Lobby '" + lobbyName + "' already exists");
+                            continue;
+                        }
+                        activeLobby = lobbyName;
+                        state       = result.nextState;                 // IN_LOBBY
+                        send(out, State.LOBBY_STATE, lobbyManager.toJsonArray());
+                        System.out.println("[DFA] -> " + state + " created=" + lobbyName);
+                        continue;
+                    }
 
-                        case TERMINATED:
-                            out.println(QUIT_ACK);
-                            System.out.println("[Server] Sent: " + QUIT_ACK);
-                            System.out.println("[Server] Session terminated cleanly.");
-                            break;
+                    // LOBBY_JOIN
+                    if (State.LOBBY_JOIN.equals(code)) {
+                        String lobbyName = result.payload;
+                        LobbyManager.Lobby lobby = lobbyManager.find(lobbyName);
+                        if (lobby == null) {
+                            send(out, State.ERROR_TERM,
+                                "Lobby '" + lobbyName + "' not found");
+                            continue;
+                        }
+                        if (lobby.status == LobbyManager.LobbyStatus.IN_PROGRESS) {
+                            send(out, State.ERROR_TERM,
+                                "Lobby '" + lobbyName + "' already in progress");
+                            continue;
+                        }
+                        activeLobby = lobbyName;
+                        state       = result.nextState;                 // IN_LOBBY
+                        send(out, State.LOBBY_STATE, lobbyManager.toJsonArray());
+                        System.out.println("[DFA] -> " + state + " joined=" + lobbyName);
+                        continue;
+                    }
 
-                        default:
-                            break;
+                    // GAME_START
+                    if (State.GAME_START.equals(code)) {
+                        state = result.nextState;                       // IN_GAME
+                        if (activeLobby != null) lobbyManager.markInProgress(activeLobby);
+                        send(out, State.GAME_START, "Game starting");
+                        System.out.println("[DFA] -> " + state + " lobby=" + activeLobby);
+                        continue;
+                    }
+
+                    // TURN_NOTIFY - receive full game state JSON each turn
+                    if (State.TURN_NOTIFY.equals(code)) {
+                        logTurnState(result.payload);
+                        send(out, State.TURN_NOTIFY, "");
+                        continue;
+                    }
+
+                    // GAME_OVER
+                    if (State.GAME_OVER.equals(code)) {
+                        state = result.nextState;                       // TERMINATED
+                        send(out, State.GAME_OVER, "Session closed");
+                        System.out.println("[DFA] -> TERMINATED (GAME_OVER)");
+                        break;
                     }
 
                 } catch (State.InvalidTransitionException e) {
-                    // DFA rejected the message — send appropriate rejection
-                    String rejection = buildRejectionResponse(state, message, e.getMessage());
-                    out.println(rejection);
-                    System.out.println("[DFA] Rejected: " + e.getMessage());
-                    System.out.println("[Server] Sent: " + rejection);
-                    // State does NOT change on rejection
+                    System.err.println("[DFA] Violation: " + e.getMessage());
+                    terminateWithError(out, e.getMessage());
+                    state = State.TERMINATED;
+                    break;
                 }
             }
 
         } catch (IOException e) {
             System.err.println("[Server] I/O error: " + e.getMessage());
         } finally {
-            try {
-                clientSocket.close();
-            } catch (IOException e) {
-                // ignore
-            }
-            System.out.println("[Server] Client socket closed. Final state: " + state);
+            try { clientSocket.close(); } catch (IOException ignored) {}
+            System.out.println("[Server] Connection closed. Final state: " + state);
         }
     }
 
     /**
-     * Builds a specific rejection response based on the current state and command attempted.
-     * This ensures the client always knows WHY the message was rejected.
+     * Sends a framed protocol message: "<code> <payload>" or just "<code>".
      */
-    private static String buildRejectionResponse(State currentState, String message, String reason) {
-        String command = message.trim().split("\\s+")[0].toUpperCase();
-        switch (command) {
-            case "HELLO":  return HELLO_REJ  + " " + reason;
-            case "AUTH":   return AUTH_REJ   + " " + reason;
-            case "JOIN":   return JOIN_REJ   + " " + reason;
-            case "START":  return START_REJ  + " " + reason;
-            case "ACTION": return ACTION_REJ + " " + reason;
-            default:       return ERROR + " Unknown command '" + command + "' in state " + currentState;
+    private static void send(PrintWriter out, String code, String payload) {
+        String line = (payload == null || payload.isEmpty()) ? code : code + " " + payload;
+        out.println(line);
+        String preview = line.length() > 120 ? line.substring(0, 120) + "..." : line;
+        System.out.println("[Server] Sent: " + preview);
+    }
+
+    /**
+     * Sends ERROR_TERMINATION (PDU 15) with a reason and closes the session.
+     */
+    private static void terminateWithError(PrintWriter out, String reason) {
+        send(out, State.ERROR_TERM, reason);
+        System.out.println("[Server] ERROR_TERMINATION: " + reason);
+    }
+
+    /**
+     * Logs a TURN_NOTIFY JSON payload — extracts key fields for a readable summary.
+     */
+    private static void logTurnState(String json) {
+        String turn   = extractField(json, "turnCount");
+        String player = extractField(json, "currentPlayerIndex");
+        String event  = extractField(json, "lastEvent");
+        System.out.println("[Server] TURN_NOTIFY turn=" + turn
+            + " player=" + player + " event=" + event);
+        System.out.println("[Server] Full state: " + json);
+    }
+
+    /**
+     * Minimal JSON field extractor for logging purposes only.
+     */
+    private static String extractField(String json, String key) {
+        if (json == null) return "?";
+        String search = "\"" + key + "\":";
+        int idx = json.indexOf(search);
+        if (idx == -1) return "?";
+        int start = idx + search.length();
+        if (start >= json.length()) return "?";
+        char first = json.charAt(start);
+        if (first == '"') {
+            int end = json.indexOf('"', start + 1);
+            return end == -1 ? "?" : json.substring(start + 1, end);
+        } else {
+            int end = start;
+            while (end < json.length() && ",}]".indexOf(json.charAt(end)) == -1) end++;
+            return json.substring(start, end).trim();
         }
     }
 }
