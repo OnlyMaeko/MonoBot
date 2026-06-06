@@ -1,2 +1,7 @@
 
 .vscode/settings.json
+# Ignore private keys and keystores
+*.pem
+*.key
+*.keystore
+*.jks
