@@ -12,19 +12,17 @@ import java.awt.geom.Rectangle2D;
 
 public class Interface {
 
-	// Game state
+	// Game state + server variables
 	private ArrayList<Player> players;
 	private Board board;
 	private Deck deck;
 	private Scanner scanner;
 	private GameWindow guiWindow;
-
-	// Network — set by Client.java after START_ACK via setServerConnection()
-	private PrintWriter  serverOut;   // sends ACTION messages to server
-	private BufferedReader serverIn;  // reads ACTION_ACK from server
+	private PrintWriter  serverOut;
+	private BufferedReader serverIn;
 	private boolean networkEnabled = false;
 
-	// Latch released when the game ends so Client.java can proceed to send QUIT
+	// Latch released when the game ends so Client.java can proceed to send QUIT, I've never actually gotten this far because trading isn't enabled so you just collect $200 forever but in the event a game does end this should work
 	private final CountDownLatch gameOverLatch = new CountDownLatch(1);
 	
 	// Turn management
@@ -37,6 +35,7 @@ public class Interface {
 		ENDED
 	}
 	
+	//Game state info to be reset at the start of each game
 	private Player currentPlayer;
 	private int currentPlayerIndex = 0;
 	private TurnState turnState = TurnState.WAITING_FOR_ROLL;
@@ -49,42 +48,23 @@ public class Interface {
 		scanner = new Scanner(System.in);
 	}
 
-	/**
-	 * Called by Client.java after START_ACK to hand off the live socket streams.
-	 * Once set, Interface will send an ACTION message to the server after each turn.
-	 *
-	 * @param out PrintWriter connected to the server socket output
-	 * @param in  BufferedReader connected to the server socket input
-	 */
+	
 	public void setServerConnection(PrintWriter out, BufferedReader in) {
 		this.serverOut     = out;
 		this.serverIn      = in;
 		this.networkEnabled = true;
 	}
 
-	/**
-	 * Blocks the calling thread (Client.java main thread) until the game is over.
-	 * Released by notifyGameOver() when displayGameResults() is called.
-	 */
+	
 	public void waitForGameOver() throws InterruptedException {
 		gameOverLatch.await();
 	}
 
-	/**
-	 * Called internally when the game ends. Releases the Client.java thread
-	 * so it can proceed to send GAME_OVER (PDU 12) to the server.
-	 */
+	// Gameover command
 	private void notifyGameOver() {
 		gameOverLatch.countDown();
 	}
-
-	/**
-	 * Serializes the current game state via JsonSerializer and sends it to the server
-	 * as a TURN_NOTIFY message (PDU 13). Waits for TURN_NOTIFY ACK before returning.
-	 * Safe to call from any thread — synchronized on serverOut.
-	 *
-	 * @param lastEvent human-readable description of what happened this turn
-	 */
+	// Calls JSON serializer to send game state to the server after a turn is complete
 	private void sendTurnState(String lastEvent) {
 		if (!networkEnabled) return;
 
@@ -95,7 +75,7 @@ public class Interface {
 
 		synchronized (serverOut) {
 			try {
-				serverOut.println(State.TURN_NOTIFY + " " + json);   // "13 {json}"
+				serverOut.println(State.TURN_NOTIFY + " " + json);
 				String ack = serverIn.readLine();
 				if (ack == null || !ack.startsWith(State.TURN_NOTIFY)) {
 					System.err.println("[Interface] Unexpected server response to TURN_NOTIFY: " + ack);
@@ -140,7 +120,7 @@ public class Interface {
 		});
 	}
 	
-	// ============ TURN MANAGEMENT ============
+	// Turn order for 2 player game on 1 machine
 	
 	public void startNewTurn() {
 		// Get current player
@@ -598,11 +578,9 @@ public class Interface {
 		System.out.println("\n================================\n");
 	}
 
-	// OLD playTurn - now handled by GUI
-	// Use rollDiceFromGUI() and endTurn() instead
+
 	@Deprecated
 	public void playTurn(Player player, int speedingCount) {
-		// This method is deprecated - all turn logic is now handled through the GUI
 	}
 
 	public static void main(String[] args) {
@@ -1067,10 +1045,10 @@ public class Interface {
 			topPanel.add(Box.createHorizontalStrut(30));
 			topPanel.add(positionLabel);
 
-			// Center panel with board
+			// Center panel
 			boardPanel = new GameBoardPanel(players, board);
 
-			// Bottom panel with buttons and log
+			// Bottom panel
 			JPanel bottomPanel = new JPanel(new BorderLayout());
 
 			// Log area
@@ -1125,8 +1103,9 @@ public class Interface {
 			startGameLoop();
 		}
 
+		// Start the first turn
 		private void startGameLoop() {
-			// Start the first turn
+			
 			SwingUtilities.invokeLater(() -> {
 				game.startNewTurn();
 				updatePlayerInfo(game.currentPlayer);
@@ -1341,25 +1320,21 @@ public class Interface {
 		private void drawBoardSquares(Graphics2D g2d, int boardX, int boardY, int squareSize) {
 			g2d.setFont(new Font("Arial", Font.PLAIN, 8));
 
-			// Bottom row (0-10, left to right)
 			for (int i = 0; i <= 10; i++) {
 				int x = boardX + i * squareSize;
 				drawSquare(g2d, x, boardY + 9 * squareSize, squareSize, squareSize, i);
 			}
 
-			// Left column (11-20, bottom to top)
 			for (int i = 1; i <= 10; i++) {
 				int y = boardY + (9 - i) * squareSize;
 				drawSquare(g2d, boardX, y, squareSize, squareSize, 10 + i);
 			}
 
-			// Top row (21-30, right to left)
 			for (int i = 10; i >= 0; i--) {
 				int x = boardX + i * squareSize;
 				drawSquare(g2d, x, boardY, squareSize, squareSize, 30 - i);
 			}
 
-			// Right column (31-39, top to bottom)
 			for (int i = 1; i <= 9; i++) {
 				int y = boardY + i * squareSize;
 				drawSquare(g2d, boardX + 9 * squareSize, y, squareSize, squareSize, 30 + i);
@@ -1409,7 +1384,7 @@ public class Interface {
 					y += (position - 30) * squareSize;
 				}
 
-				// Draw player circle
+				// Token to be set on player pos
 				g2d.setColor(playerColors[playerIndex % 2]);
 				int offset = (playerIndex % 2) * 8;
 				g2d.fillOval(x + 5 + offset, y + 5 + offset, 14, 14);

@@ -2,6 +2,9 @@ import java.io.*;
 import java.net.*;
 import java.util.Properties;
 
+
+//Sockets used for the Java server but I promise the python bridge actually transports the data over QUIC
+//Main calls the config to connect to the client.java on the port after being run over QUIC
 public class Server {
     public static void main(String[] args) throws IOException {
         Properties prop = new Properties();
@@ -13,6 +16,7 @@ public class Server {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("[Server] Plain TCP Server listening on " + port + " (Behind QUIC Bridge)");
             
+            // Accepts client connections, right now it's just 1 but in a future version I plan to upscale to handle multiple
             while (true) {
                 try (Socket clientSocket = serverSocket.accept();
                      BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -20,7 +24,7 @@ public class Server {
                     
                     System.out.println("[Server] Bridge connected. Initializing DFA...");
                     
-                    // Initialize the DFA state machine
+                    // Initialize the DFA
                     State currentState = State.CONNECTED;
                     
                     String inputLine;
@@ -28,15 +32,15 @@ public class Server {
                         System.out.println("[Server RCV] " + inputLine);
                         
                         try {
-                            // Validate the transition using the DFA (Valid credentials: admin / password)
+                            // Auth, this should be switched to the config properties, !!!!DONT FORGET!!!!
                             State.TransitionResult result = currentState.transition(inputLine, "admin", "password");
                             currentState = result.nextState;
                             
-                            // Send proper protocol responses based on the new state
+                            //DFA States frp, state.java and listed in P2 DFA
                             if (currentState == State.HANDSHAKED) {
                                 out.println(State.HELLO_ACK);
                                 out.println(State.AUTH_REQUESTED);
-                                currentState = State.AWAITING_AUTH; // Advance DFA to await credentials
+                                currentState = State.AWAITING_AUTH;
                             } 
                             else if (currentState == State.AWAITING_AUTH && result.authFailed) {
                                 out.println(State.AUTH_FAIL);
@@ -51,7 +55,7 @@ public class Server {
                                 out.println(State.GAME_START + " Game is starting");
                             } 
                             else if (currentState == State.IN_GAME && inputLine.startsWith(State.TURN_NOTIFY)) {
-                                // Interface.java expects an ACK starting with the same TURN_NOTIFY code
+                                
                                 out.println(State.TURN_NOTIFY + " ACK"); 
                             } 
                             else if (currentState == State.TERMINATED) {
@@ -64,6 +68,8 @@ public class Server {
                             currentState = State.TERMINATED;
                         }
                     }
+                    // Terminate the server, doesn't actually end the client, client also has to close the connection for UI to dissapear but data will not be passed and the connection is severed
+                    // I Think its a SWING GUI error that keeps the GUI open post dc
                     System.out.println("[Server] Client session terminated.");
                 } catch (IOException e) {
                     System.out.println("[Server] Connection dropped.");

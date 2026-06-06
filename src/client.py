@@ -3,6 +3,24 @@ from aioquic.asyncio import connect, QuicConnectionProtocol
 from aioquic.quic.configuration import QuicConfiguration
 from aioquic.quic.events import StreamDataReceived
 
+# Read variables from config.properties so that nothing is hardcoded same as in server.py but ofc takes in client config settings
+config = {}
+try:
+    with open("config.properties", "r") as f:
+        for line in f:
+            if "=" in line and not line.startswith("#"):
+                k, v = line.strip().split("=", 1)
+                config[k.strip()] = v.strip()
+except FileNotFoundError:
+    pass
+
+QUIC_SERVER_IP = config.get("quic.client.host")
+QUIC_SERVER_PORT = int(config.get("quic.server.port"))
+JAVA_CLIENT_IP = config.get("client.host")
+JAVA_CLIENT_PORT = int(config.get("client.port"))
+
+
+# initializes the QUIC bridge and writes datastream to the socket
 class ClientBridge(QuicConnectionProtocol):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -30,12 +48,12 @@ async def handle_tcp_client(reader, writer, quic_protocol):
             quic_protocol.transmit()
         except Exception:
             break
-
+# Replace bridge method to here to write client messages to send to server instead of over bridge.py and runs the client server to connect to the server.py with the ports from the config file
 async def run_client():
-    config = QuicConfiguration(is_client=True, alpn_protocols=["bridge"])
-    config.verify_mode = False 
-    async with connect("127.0.0.1", 4433, configuration=config, create_protocol=ClientBridge) as quic:
-        server = await asyncio.start_server(lambda r, w: handle_tcp_client(r, w, quic), '127.0.0.1', 8080)
+    quic_config = QuicConfiguration(is_client=True, alpn_protocols=["bridge"])
+    quic_config.verify_mode = False 
+    async with connect(QUIC_SERVER_IP, QUIC_SERVER_PORT, configuration=quic_config, create_protocol=ClientBridge) as quic:
+        server = await asyncio.start_server(lambda r, w: handle_tcp_client(r, w, quic), JAVA_CLIENT_IP, JAVA_CLIENT_PORT)
         await server.serve_forever()
 
 if __name__ == "__main__":

@@ -11,6 +11,9 @@ Stateful Protocol Goals
 
 - Please do not grade based on UI quality (unless you think its awesome), the original iteration wasn't coded with a UI in mind, thats on the 2027 to do list. The general logic from the ML algorithm and game state implementation was the base for the multiplayer implementation. Not everything has been transferred immediately to player options, I'm sure there are many things I have forgotten in this iteration that are very buggy and potentially session ending, they should not be a result of the PDUs or the DFA, simply a result of the poor (ish, im trying to be nicer to it) quality of the adapted multiplayer version. PDUs and DFA flow can be found in the following files: server.py, client.py, bridge.py, State.java, Server.java, Client.java. The rest of the java and class files are solely meant to implement the application and while there are some game state things that can be found in interface it is largely meant to only cover the actual interface and running of the local gamestate, not the transmission. The payload consists of a JSON file that contains the entire game state to be updated locally at the client. For reasons listed above the output in the client console may not exactly match the visual representation as the bot iteration was fully made for console interaction and the 
 
+
+( Prof Parkingson: If anything does not work for any reason please reach out to me at my drexel email, the instructions should work and since the bulk of the grade is a successful run and it has been tested on a fresh machine it should work but I should be available to troubleshoot any potential issues)
+
 - Implementation instructions: 
 
     WSL Install Command
@@ -25,10 +28,13 @@ Stateful Protocol Goals
     Directory Nav that files will go into
     cd insert your path (Path that I used in the video during first implementation is cd ~ then running the git clone)
 
+    At this stage you may need to sudo install git, as shown in the implementation video depending on if you already have git installed or not and that can be done with this command:
+    sudo apt install git -y
+
     Git clone
     git clone https://github.com/OnlyMaeko/MonoBot.git
 
-    Sudo Update Command
+    Sudo Update Command (you can do this at any point and may be preferable to do at the start but it should be functional in this stage)
     sudo apt update
 
 
@@ -62,9 +68,7 @@ Stateful Protocol Goals
 Above instructions should work but please refer to the demo video listed below for a (not so clean) implementation of the repo and protocol
 
 
-
-
-
+Youtube video link: https://youtu.be/NUmI53HbyJM
 
 
 General MonoBot ReadME

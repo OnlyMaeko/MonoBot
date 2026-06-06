@@ -1,49 +1,9 @@
 import java.util.ArrayList;
-import java.util.List;
 
-/**
- * JsonSerializer — builds a single-line JSON string representing the full game state
- * after each turn. Used by the client to send an ACTION message to the server.
- *
- * No external dependencies. Output is always a single line (no newlines inside the JSON)
- * so it can be safely sent over a PrintWriter.println() call.
- *
- * Example output (pretty-printed here for readability):
- * {
- *   "turnCount": 5,
- *   "currentPlayerIndex": 1,
- *   "players": [
- *     {
- *       "name": "Player 1",
- *       "balance": 1340,
- *       "location": 6,
- *       "locationName": "Oriental Avenue",
- *       "inJail": false,
- *       "ownedProperties": ["Mediterranean Avenue", "Baltic Avenue"],
- *       "ownedRailroads": [],
- *       "ownedUtilities": []
- *     },
- *     ...
- *   ],
- *   "lastDice1": 3,
- *   "lastDice2": 4,
- *   "lastEvent": "Player 1 bought Oriental Avenue for $100"
- * }
- */
+// This JSON serialializer is the file that creates the JSON file which is the single string payload that is sent to the client so the other player can update their local version of the game state 
 public class JsonSerializer {
 
-    /**
-     * Serializes the full game state into a single-line JSON string.
-     *
-     * @param players          all players in the game
-     * @param board            the board (used to look up location names)
-     * @param turnCount        how many turns have been played
-     * @param currentPlayerIdx index of the player whose turn just ended
-     * @param dice1            first die value from the last roll
-     * @param dice2            second die value from the last roll
-     * @param lastEvent        human-readable description of what happened this turn
-     * @return a single-line JSON string safe for transmission over a socket
-     */
+
     public static String serialize(
             ArrayList<Player> players,
             Board board,
@@ -74,9 +34,7 @@ public class JsonSerializer {
         return sb.toString();
     }
 
-    /**
-     * Serializes a single player into a JSON object string.
-     */
+    // Takes in the arraylists of all gamestate objects listed in the player and associated classes and appends it to the payload
     private static String serializePlayer(Player p, Board board) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
@@ -99,9 +57,7 @@ public class JsonSerializer {
         return sb.toString();
     }
 
-    /**
-     * Serializes a list of Properties into a JSON array of their names.
-     */
+    // Takes in the arraylist of properties and appends it to the payload
     private static String serializeNameList(ArrayList<Properties> props) {
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < props.size(); i++) {
@@ -112,27 +68,24 @@ public class JsonSerializer {
         return sb.toString();
     }
 
-    // ── Primitive field helpers ───────────────────────────────────────────────
+    // Methods to return value types
 
-    /** "key": intValue */
+    // int
     private static String field(String key, int value) {
         return jsonString(key) + ":" + value;
     }
 
-    /** "key": boolValue */
+    // boolean
     private static String field(String key, boolean value) {
         return jsonString(key) + ":" + value;
     }
 
-    /** "key": "stringValue" (with escaping) */
+    // string
     private static String field(String key, String value) {
         return jsonString(key) + ":" + jsonString(value);
     }
 
-    /**
-     * Wraps a string in JSON double-quotes and escapes special characters.
-     * Handles: backslash, double-quote, newline, carriage return, tab.
-     */
+    // Wraps the parsed json strings in quotes and slashes to protect from any kind of injection attacks or formatting issues as a results of unexpected characters
     private static String jsonString(String s) {
         if (s == null) return "null";
         StringBuilder sb = new StringBuilder("\"");

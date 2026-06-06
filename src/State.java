@@ -7,6 +7,8 @@ public enum State {
     IN_GAME,
     TERMINATED;
 
+
+    // All PDU codes, 15 was changed to 99 as a general error, more specific error coding to be done in the future
     public static final String HELLO          = "01";
     public static final String HELLO_ACK      = "02";
     public static final String HELLO_REJ      = "03";
@@ -23,6 +25,7 @@ public enum State {
     public static final String DISCONNECT     = "14";
     public static final String ERROR_TERM     = "99";
 
+    // Moves from 1 state to the next in DFA
     public static class TransitionResult {
         public final State nextState;
         public final boolean authFailed;
@@ -35,6 +38,7 @@ public enum State {
         }
     }
 
+    // Parses payload based on which message is sent
     public TransitionResult transition(String incomingLine, String validUser, String validPass) throws InvalidTransitionException {
         String[] tokens = incomingLine.trim().split("\\s+", 2);
         String code = tokens[0];
@@ -43,14 +47,14 @@ public enum State {
         if (DISCONNECT.equals(code)) {
             return new TransitionResult(TERMINATED, false, null);
         }
-
+        //Correct DFA progression as seen in server.java, taken from here
         switch (this) {
             case CONNECTED:
                 if (HELLO.equals(code)) {
                     return new TransitionResult(HANDSHAKED, false, null);
                 }
                 break;
-
+            //IDLE pre auth (maybe this counts as a separate state?, I didnt in the P2 so i have the message but it should be a quick turnaround)
             case AWAITING_AUTH:
                 if ("AUTH".equalsIgnoreCase(code)) {
                     String[] creds = payload.split("\\s+");
@@ -61,7 +65,7 @@ public enum State {
                     }
                 }
                 break;
-
+            //AUTH
             case AUTHENTICATED:
                 if (LOBBY_LIST_REQ.equals(code)) {
                     return new TransitionResult(AUTHENTICATED, false, null);
@@ -75,13 +79,13 @@ public enum State {
                     return new TransitionResult(IN_LOBBY, false, payload);
                 }
                 break;
-
+            //Waiting for game start
             case IN_LOBBY:
                 if (GAME_START.equals(code)) {
                     return new TransitionResult(IN_GAME, false, null);
                 }
                 break;
-
+                // DC by game end
             case IN_GAME:
                 if (TURN_NOTIFY.equals(code)) {
                     return new TransitionResult(IN_GAME, false, payload);
@@ -90,14 +94,15 @@ public enum State {
                     return new TransitionResult(TERMINATED, false, null);
                 }
                 break;
-
+            // Unexpectde transition (premature dc)
             case TERMINATED:
                 throw new InvalidTransitionException("Session already closed");
         }
-
+        // Unexpectde transition (premature dc)
         throw new InvalidTransitionException("Invalid protocol sequence '" + code + "' during state " + this);
     }
 
+    // Unexpectde transition (premature dc)
     public boolean isActive() {
         return this != TERMINATED;
     }
