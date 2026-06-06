@@ -1,6 +1,3 @@
-/**
- * Monobot Protocol — DFA State Machine (v2)
- */
 public enum State {
     CONNECTED,
     HANDSHAKED,

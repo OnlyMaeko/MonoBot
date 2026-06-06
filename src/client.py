@@ -8,15 +8,17 @@ class ClientBridge(QuicConnectionProtocol):
         super().__init__(*args, **kwargs)
         self.tcp_writer = None
 
+# Writes datastream to the java client
     def quic_event_received(self, event):
         if isinstance(event, StreamDataReceived):
             if self.tcp_writer:
-                # When data comes back from the Server over QUIC, write it to the Java Client
                 self.tcp_writer.write(event.data)
                 asyncio.create_task(self.tcp_writer.drain())
 
+# Saves the write and the payload to be sent back to the client
+# A history of the PDUs will be kept in the server window but not as a stateful memory (client as well but for the same reason it's not stateful just a result of not clearing the console) 
 async def handle_tcp_client(reader, writer, quic_protocol):
-    quic_protocol.tcp_writer = writer # Save the writer so we can send data back
+    quic_protocol.tcp_writer = writer 
     stream_id = quic_protocol._quic.get_next_available_stream_id()
     while True:
         try:
